@@ -54,6 +54,8 @@ export async function runProductionChecks(
   const page = await fetchPage(config.startUrl);
   if (!page) {
     T.fail(`could not fetch ${config.startUrl} — a release build would show a blank screen`);
+  } else if (page.status < 200 || page.status >= 300) {
+    T.fail(`${config.startUrl} responded with HTTP ${page.status} — a release build would not reach a live site`);
   } else {
     checkCsp(T, page.headers);
     checkMixedContent(T, page.html);
