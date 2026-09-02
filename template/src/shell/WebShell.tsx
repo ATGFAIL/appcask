@@ -26,6 +26,7 @@ import { handleBridgeMessage, type DispatchContext } from './bridgeDispatch';
 import { beforeContentScript, contextScript, deliverScript } from './injection';
 import { OfflineScreen } from './OfflineScreen';
 import { TabBar, activeTabIndex } from './TabBar';
+import { Drawer } from './Drawer';
 import * as push from './push';
 import { SHELL_VERSION } from './version';
 import {
@@ -49,6 +50,7 @@ interface Maintenance {
 }
 
 const TABS = config.navigation.mode === 'tabs' ? config.navigation.tabs : [];
+const DRAWER_ITEMS = config.navigation.mode === 'drawer' ? config.navigation.tabs : [];
 const BIOMETRIC_LOCK = config.features.biometricLock;
 
 /**
@@ -391,6 +393,7 @@ export function WebShell(): React.JSX.Element {
           }}
         />
       ) : null}
+      {DRAWER_ITEMS.length > 0 ? <Drawer items={DRAWER_ITEMS} onSelect={loadNative} /> : null}
     </Frame>
   );
 }

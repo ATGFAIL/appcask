@@ -114,13 +114,12 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] File `<input>` + camera capture, downloads (via `DownloadManager`, with cookies)
 - [x] `appcask doctor --production` — signing, assetlinks fingerprint, live-site (CSP / cookies / viewport / UA), store-review risk
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
-- [x] Native bottom-tab navigation (`navigation.mode: "tabs"`)
+- [x] Native navigation — bottom tabs and a slide-out drawer (`navigation.mode`)
 - [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
 - [~] iOS shell — Swift bridge written, config/materialize done; needs finishing in Xcode ([docs/ios.md](./docs/ios.md))
 - [~] Push (Android / FCM) — wired via `appcask android` + `google-services.json`; needs a Firebase project to verify ([docs/push.md](./docs/push.md))
 - [x] Biometric app-lock (`features.biometricLock`) + in-app review (`window.appcask.requestReview()`)
 - [x] Deep links open the app at the URL (cold start + running) + Android share-target (`features.shareTarget`)
-- [ ] Drawer navigation
 
 ## Contributing
 

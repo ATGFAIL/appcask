@@ -46,8 +46,8 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
   "navigation": {
     "mode": "single",                  // "single" = one WebView.
                                        // "tabs" = a native bottom bar; each tab loads a URL.
-                                       // "drawer" is still on the roadmap (treated as "single").
-    "tabs": [                           // used when mode is "tabs"
+                                       // "drawer" = a slide-out menu (a button overlays the top-left).
+    "tabs": [                           // the nav items — used when mode is "tabs" or "drawer"
       { "label": "Home", "url": "https://acme.example/" },
       { "label": "Shop", "url": "https://acme.example/shop", "icon": "🛍️" },
       { "label": "Account", "url": "https://acme.example/account", "icon": "👤" }
@@ -79,8 +79,6 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
       "host": "acme.example",          // Needs a /.well-known/assetlinks.json on that host —
       "pathPatterns": ["/p/*", "/order/*"]   //  `appcask doctor` checks it for you.
     },
-
-    "push": { "provider": "fcm", "onTapUrlParam": "url" },  // roadmap
 
     "updates": {                        // health check + kill switch + fall back to the last
       "manifestUrl": "https://acme.example/.well-known/appcask.json",   // a JSON file you host
