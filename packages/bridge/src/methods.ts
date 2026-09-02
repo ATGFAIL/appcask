@@ -66,6 +66,10 @@ export interface MethodMap {
   'secureStore.remove': { params: { key: string }; result: Record<never, never> };
   'clipboard.read': { params: Record<never, never>; result: { text: string } };
   'clipboard.write': { params: { text: string }; result: Record<never, never> };
+  /** Ask for notification permission. Resolves with the granted state. */
+  'push.requestPermission': { params: Record<never, never>; result: { granted: boolean } };
+  /** The device push token, or `null` if permission was denied / push isn't configured. */
+  'push.getToken': { params: Record<never, never>; result: { token: string | null } };
 }
 
 export type MethodName = keyof MethodMap;
@@ -85,6 +89,8 @@ export const METHOD_NAMES = [
   'secureStore.remove',
   'clipboard.read',
   'clipboard.write',
+  'push.requestPermission',
+  'push.getToken',
 ] as const satisfies readonly MethodName[];
 
 export function isMethodName(value: unknown): value is MethodName {

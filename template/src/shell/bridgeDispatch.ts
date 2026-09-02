@@ -12,6 +12,7 @@ import {
 } from '@appcask/bridge';
 import { checkCapability } from '@appcask/config/capabilities';
 import { native } from './native';
+import * as push from './push';
 import { config } from '../config';
 import { SHELL_VERSION } from './version';
 
@@ -142,6 +143,15 @@ async function dispatch(request: RequestMessage, ctx: DispatchContext): Promise<
       const text = stringParam(params, 'text', { max: 100_000, allowEmpty: true }) as string;
       await native.clipboardWrite(text);
       return {};
+    }
+
+    case 'push.requestPermission': {
+      onlyParams(params, []);
+      return { granted: await push.requestPermission() };
+    }
+    case 'push.getToken': {
+      onlyParams(params, []);
+      return { token: await push.getToken() };
     }
 
     default:

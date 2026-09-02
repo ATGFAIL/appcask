@@ -83,6 +83,7 @@ export async function materializeAndroid(
   await writeFile(join(outDir, 'metro.config.js'), STANDALONE_METRO, 'utf8');
   await patchAndroid(outDir, config, warnings);
   await patchIos(outDir, config);
+  await patchPush(outDir, configRoot, config, warnings);
   const wroteIcons = await writeIcons(outDir, configRoot, config, warnings);
 
   return { outDir, wroteIcons, warnings };
@@ -231,6 +232,94 @@ async function patchIos(outDir: string, config: ResolvedAppcaskConfig): Promise<
     }
     return out;
   });
+}
+
+const FIREBASE_VERSION = '^23.4.1';
+const GOOGLE_SERVICES_PLUGIN = '4.4.3';
+
+const REAL_PUSH_TS = `import { PermissionsAndroid, Platform } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
+import { config } from '../config';
+
+// Wired by \`appcask android\` (features.push + google-services.json present).
+const PARAM = config.features.push?.onTapUrlParam ?? 'url';
+export const pushEnabled = true;
+
+// react-native-firebase warns without a foreground handler; the site shows its own UI.
+messaging().onMessage(async () => {});
+
+export async function requestPermission(): Promise<boolean> {
+  if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+    const res = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    if (res !== PermissionsAndroid.RESULTS.GRANTED) return false;
+  }
+  const status = await messaging().requestPermission();
+  return (
+    status === messaging.AuthorizationStatus.AUTHORIZED ||
+    status === messaging.AuthorizationStatus.PROVISIONAL
+  );
+}
+
+export async function getToken(): Promise<string | null> {
+  try {
+    return await messaging().getToken();
+  } catch {
+    return null;
+  }
+}
+
+export function onNotificationTapUrl(cb: (url: string) => void): () => void {
+  const open = (msg: { data?: Record<string, string | undefined> } | null) => {
+    const url = msg?.data?.[PARAM];
+    if (typeof url === 'string' && /^https:\\/\\//.test(url)) cb(url);
+  };
+  void messaging().getInitialNotification().then(open);
+  return messaging().onNotificationOpenedApp(open);
+}
+`;
+
+async function patchPush(
+  outDir: string,
+  configRoot: string,
+  config: ResolvedAppcaskConfig,
+  warnings: string[],
+): Promise<void> {
+  if (!config.features.push) return;
+  const googleServices = join(configRoot, 'google-services.json');
+  if (!existsSync(googleServices)) {
+    warnings.push('features.push is set but google-services.json is not next to the config — push left disabled');
+    return;
+  }
+
+  await cp(googleServices, join(outDir, 'android', 'app', 'google-services.json'));
+
+  await edit(join(outDir, 'android', 'build.gradle'), (c) =>
+    c.includes('com.google.gms:google-services')
+      ? c
+      : c.replace(
+          /(dependencies\s*\{)/,
+          `$1\n        classpath("com.google.gms:google-services:${GOOGLE_SERVICES_PLUGIN}")`,
+        ),
+  );
+  await edit(join(outDir, 'android', 'app', 'build.gradle'), (c) =>
+    c.includes('com.google.gms.google-services')
+      ? c
+      : c.replace(
+          'apply plugin: "com.facebook.react"',
+          'apply plugin: "com.facebook.react"\napply plugin: "com.google.gms.google-services"',
+        ),
+  );
+
+  const pkgPath = join(outDir, 'package.json');
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
+  pkg.dependencies = {
+    ...pkg.dependencies,
+    '@react-native-firebase/app': FIREBASE_VERSION,
+    '@react-native-firebase/messaging': FIREBASE_VERSION,
+  };
+  await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+
+  await writeFile(join(outDir, 'src', 'shell', 'push.ts'), REAL_PUSH_TS, 'utf8');
 }
 
 async function writeIcons(

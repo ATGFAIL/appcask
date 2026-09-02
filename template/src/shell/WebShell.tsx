@@ -18,6 +18,7 @@ import { handleBridgeMessage, type DispatchContext } from './bridgeDispatch';
 import { beforeContentScript, contextScript, deliverScript } from './injection';
 import { OfflineScreen } from './OfflineScreen';
 import { TabBar, activeTabIndex } from './TabBar';
+import * as push from './push';
 import { SHELL_VERSION } from './version';
 import {
   updatesEnabled,
@@ -171,6 +172,12 @@ export function WebShell(): React.JSX.Element {
     }),
     [offline, insets, loadNative],
   );
+
+  // --- push: tapping a notification opens its URL ---
+  useEffect(() => {
+    if (!push.pushEnabled) return;
+    return push.onNotificationTapUrl((url) => loadNative(url));
+  }, [loadNative]);
 
   // --- Android hardware back ---
   useEffect(() => {

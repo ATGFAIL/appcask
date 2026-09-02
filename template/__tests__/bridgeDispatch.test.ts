@@ -82,6 +82,17 @@ test('secureStore rejects a key with illegal characters', async () => {
   expect(res).toMatchObject({ ok: false, error: { code: 'INVALID_ARGUMENT' } });
 });
 
+test('push methods resolve via the stub (push disabled by default)', async () => {
+  expect(decodeResponse((await call('push.requestPermission', {}))!)).toMatchObject({
+    ok: true,
+    result: { granted: false },
+  });
+  expect(decodeResponse((await call('push.getToken', {}))!)).toMatchObject({
+    ok: true,
+    result: { token: null },
+  });
+});
+
 test('an unknown method is rejected at decode time (returns null, not a response)', async () => {
   expect(await call('teleport', {})).toBeNull();
 });

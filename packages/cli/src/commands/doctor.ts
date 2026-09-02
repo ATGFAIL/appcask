@@ -62,6 +62,13 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
     const hc = u.healthCheck.selector ? `wait for "${u.healthCheck.selector}"` : 'page loads without a 5xx';
     T.info(`updates: health check = ${hc}, after ${u.healthCheck.maxFailures} fails → ${u.onUnhealthy}`);
   }
+  if (config.features.push) {
+    if (existsSync(join(root, 'google-services.json'))) {
+      T.ok('push: FCM configured (google-services.json present)');
+    } else {
+      T.warn('features.push is set but google-services.json is not next to the config — push stays disabled');
+    }
+  }
 
   // --- bridge capabilities ---
   if (config.bridge.grants === null) {

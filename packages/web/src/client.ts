@@ -54,6 +54,14 @@ export interface AppcaskClient {
     write(text: string, options?: TransportOptions): Promise<void>;
   };
 
+  /** Push notifications. No-ops outside the shell / when push isn't configured. */
+  readonly push: {
+    /** Prompt for permission. Resolves `false` outside the shell. */
+    requestPermission(options?: TransportOptions): Promise<boolean>;
+    /** The device push token, or `null`. */
+    getToken(options?: TransportOptions): Promise<string | null>;
+  };
+
   /** Latest safe-area insets pushed by native (zeros in a browser). */
   insets(): Insets;
 
@@ -172,6 +180,17 @@ export const appcask: AppcaskClient = {
           : Promise.resolve();
       }
       return call('clipboard.write', { text }, options).then(() => undefined);
+    },
+  },
+
+  push: {
+    requestPermission(options) {
+      if (!isAppcask()) return Promise.resolve(false);
+      return call('push.requestPermission', {}, options).then((r) => r.granted);
+    },
+    getToken(options) {
+      if (!isAppcask()) return Promise.resolve(null);
+      return call('push.getToken', {}, options).then((r) => r.token);
     },
   },
 
