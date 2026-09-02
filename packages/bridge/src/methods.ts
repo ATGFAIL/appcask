@@ -70,6 +70,10 @@ export interface MethodMap {
   'push.requestPermission': { params: Record<never, never>; result: { granted: boolean } };
   /** The device push token, or `null` if permission was denied / push isn't configured. */
   'push.getToken': { params: Record<never, never>; result: { token: string | null } };
+  /** Prompt for fingerprint / Face ID. */
+  'biometric.authenticate': { params: { reason?: string }; result: { authenticated: boolean } };
+  /** Ask the OS to show its in-app review prompt (it decides whether to actually show it). */
+  'review.request': { params: Record<never, never>; result: Record<never, never> };
 }
 
 export type MethodName = keyof MethodMap;
@@ -91,6 +95,8 @@ export const METHOD_NAMES = [
   'clipboard.write',
   'push.requestPermission',
   'push.getToken',
+  'biometric.authenticate',
+  'review.request',
 ] as const satisfies readonly MethodName[];
 
 export function isMethodName(value: unknown): value is MethodName {

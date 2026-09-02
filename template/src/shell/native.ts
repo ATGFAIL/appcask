@@ -15,6 +15,8 @@ interface AppcaskNativeModule {
   /** Open `url` in a Custom Tab / ASWebAuthenticationSession, resolve with the captured redirect. */
   startAuthSession(url: string, callbackHosts: string[]): Promise<{ redirectUrl: string }>;
   osVersion(): Promise<string>;
+  biometricAuthenticate(reason: string | null): Promise<{ authenticated: boolean }>;
+  reviewRequest(): Promise<void>;
 }
 
 const RawNative = NativeModules.AppcaskNative as AppcaskNativeModule | undefined;
@@ -66,6 +68,11 @@ export const native = {
 
   startAuthSession: (url: string, callbackHosts: string[]) =>
     withTimeout('startAuthSession', requireNative().startAuthSession(url, callbackHosts), 300_000),
+
+  biometricAuthenticate: (reason: string | null) =>
+    withTimeout('biometricAuthenticate', requireNative().biometricAuthenticate(reason), 120_000),
+
+  reviewRequest: () => withTimeout('reviewRequest', requireNative().reviewRequest(), 15_000),
 
   osVersion: (): Promise<string> =>
     RawNative

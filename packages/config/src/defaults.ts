@@ -53,6 +53,7 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       downloads: f.downloads ?? true,
       shareTarget: f.shareTarget ?? false,
       appReviewPrompt: f.appReviewPrompt ?? false,
+      biometricLock: f.biometricLock ?? false,
       externalBrowserAuth: f.externalBrowserAuth ?? [],
       separateDocumentPatterns: f.separateDocumentPatterns ?? [],
       deepLinks: f.deepLinks

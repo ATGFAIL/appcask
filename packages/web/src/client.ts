@@ -62,6 +62,12 @@ export interface AppcaskClient {
     getToken(options?: TransportOptions): Promise<string | null>;
   };
 
+  /** Prompt for fingerprint / Face ID. Resolves `false` outside the shell. */
+  biometric(reason?: string, options?: TransportOptions): Promise<boolean>;
+
+  /** Ask the OS to show its in-app review prompt. No-op outside the shell. */
+  requestReview(options?: TransportOptions): Promise<void>;
+
   /** Latest safe-area insets pushed by native (zeros in a browser). */
   insets(): Insets;
 
@@ -192,6 +198,16 @@ export const appcask: AppcaskClient = {
       if (!isAppcask()) return Promise.resolve(null);
       return call('push.getToken', {}, options).then((r) => r.token);
     },
+  },
+
+  biometric(reason, options) {
+    if (!isAppcask()) return Promise.resolve(false);
+    return call('biometric.authenticate', reason ? { reason } : {}, options).then((r) => r.authenticated);
+  },
+
+  requestReview(options) {
+    if (!isAppcask()) return Promise.resolve();
+    return call('review.request', {}, options).then(() => undefined);
   },
 
   insets() {

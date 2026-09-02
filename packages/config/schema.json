@@ -112,7 +112,8 @@
         "fileAccess": { "type": "boolean", "default": true, "description": "Wire up <input type=file>, camera capture, and the native file picker." },
         "downloads": { "type": "boolean", "default": true, "description": "Route download responses through the OS download manager." },
         "shareTarget": { "type": "boolean", "default": false, "description": "Register the app as an Android share target that forwards to a URL (roadmap)." },
-        "appReviewPrompt": { "type": "boolean", "default": false, "description": "Expose window.appcask.review.request() (roadmap)." },
+        "appReviewPrompt": { "type": "boolean", "default": false, "description": "Expose window.appcask.review.request() so the site can ask the OS to show its in-app review prompt." },
+        "biometricLock": { "type": "boolean", "default": false, "description": "Require fingerprint / Face ID to open the app (and after it's been backgrounded). Also exposes window.appcask.biometric.authenticate()." },
         "externalBrowserAuth": {
           "type": "array",
           "description": "Domains whose pages must open in Custom Tabs / ASWebAuthenticationSession instead of the WebView (Google, Apple, Microsoft, ...). The redirect back to an internalHost is intercepted and the session handed to the WebView.",

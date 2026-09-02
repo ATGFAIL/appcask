@@ -8,8 +8,12 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.view.HapticFeedbackConstants
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
+import com.google.android.play.core.review.ReviewManagerFactory
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.facebook.react.bridge.Arguments
@@ -176,6 +180,53 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun osVersion(promise: Promise) {
     promise.resolve(Build.VERSION.RELEASE ?: Build.VERSION.SDK_INT.toString())
+  }
+
+  // --- biometrics ---
+  @ReactMethod
+  fun biometricAuthenticate(reason: String?, promise: Promise) {
+    val activity = reactContext.currentActivity as? FragmentActivity
+      ?: return promise.reject("NATIVE_UNAVAILABLE", "no FragmentActivity")
+    val allowed = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    if (BiometricManager.from(reactContext).canAuthenticate(allowed) != BiometricManager.BIOMETRIC_SUCCESS) {
+      return promise.reject("NOT_SUPPORTED", "no biometrics or device credential enrolled")
+    }
+    runOnUi {
+      var settled = false
+      val prompt = BiometricPrompt(
+        activity,
+        androidx.core.content.ContextCompat.getMainExecutor(activity),
+        object : BiometricPrompt.AuthenticationCallback() {
+          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            if (!settled) { settled = true; promise.resolve(Arguments.createMap().apply { putBoolean("authenticated", true) }) }
+          }
+          override fun onAuthenticationError(code: Int, msg: CharSequence) {
+            if (!settled) { settled = true; promise.resolve(Arguments.createMap().apply { putBoolean("authenticated", false) }) }
+          }
+        },
+      )
+      prompt.authenticate(
+        BiometricPrompt.PromptInfo.Builder()
+          .setTitle(reason ?: "Unlock")
+          .setAllowedAuthenticators(allowed)
+          .build(),
+      )
+    }
+  }
+
+  // --- in-app review ---
+  @ReactMethod
+  fun reviewRequest(promise: Promise) {
+    val activity = reactContext.currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
+    val manager = ReviewManagerFactory.create(reactContext)
+    manager.requestReviewFlow().addOnCompleteListener { task ->
+      if (task.isSuccessful) {
+        manager.launchReviewFlow(activity, task.result).addOnCompleteListener { promise.resolve(null) }
+      } else {
+        // Play decides not to show it — that's a normal outcome, not an error.
+        promise.resolve(null)
+      }
+    }
   }
 
   /**

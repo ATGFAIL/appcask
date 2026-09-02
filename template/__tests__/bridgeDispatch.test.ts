@@ -19,6 +19,8 @@ jest.mock('../src/shell/native', () => ({
     clipboardWrite: jest.fn().mockResolvedValue(undefined),
     startAuthSession: jest.fn(),
     osVersion: jest.fn().mockResolvedValue('14'),
+    biometricAuthenticate: jest.fn().mockResolvedValue({ authenticated: true }),
+    reviewRequest: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -91,6 +93,12 @@ test('push methods resolve via the stub (push disabled by default)', async () =>
     ok: true,
     result: { token: null },
   });
+});
+
+test('biometric.authenticate forwards the reason and returns the result', async () => {
+  const res = decodeResponse((await call('biometric.authenticate', { reason: 'Unlock' }))!);
+  expect(res).toMatchObject({ ok: true, result: { authenticated: true } });
+  expect(mockNative.biometricAuthenticate).toHaveBeenCalledWith('Unlock');
 });
 
 test('an unknown method is rejected at decode time (returns null, not a response)', async () => {

@@ -59,6 +59,9 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
     "offlinePage": true,               // built-in screen when a load fails with no connection (default true)
     "fileAccess": true,                // wire up <input type=file> + camera capture (default true)
     "downloads": true,                 // route downloads to the OS download manager (default true)
+    "biometricLock": false,            // require fingerprint / Face ID to open the app; exposes window.appcask.biometric()
+    "appReviewPrompt": false,          // exposes window.appcask.requestReview() (asks the OS to show its prompt)
+    "push": { "provider": "fcm" },     // Android FCM — also needs google-services.json (see push.md)
 
     "externalBrowserAuth": [           // identity providers that BLOCK embedded WebViews.
       "accounts.google.com",           // Pages on these hosts open in the OS browser (Custom Tabs /

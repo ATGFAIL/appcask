@@ -115,6 +115,8 @@ dependencies {
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("com.google.android.play:review-ktx:2.0.2")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

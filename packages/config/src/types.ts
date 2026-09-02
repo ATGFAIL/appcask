@@ -121,8 +121,10 @@ export interface AppcaskFeatures {
   downloads?: boolean;
   /** Register the app as an Android share target that forwards to a URL (roadmap). */
   shareTarget?: boolean;
-  /** Expose `window.appcask.review.request()` (roadmap). */
+  /** Expose `window.appcask.review.request()`. */
   appReviewPrompt?: boolean;
+  /** Require fingerprint / Face ID to open the app. Also exposes `biometric.authenticate()`. */
+  biometricLock?: boolean;
   /**
    * Domains whose pages must open in Custom Tabs / `ASWebAuthenticationSession`
    * instead of the WebView. The redirect back to an `internalHost` is
@@ -212,6 +214,7 @@ export interface ResolvedAppcaskConfig {
     downloads: boolean;
     shareTarget: boolean;
     appReviewPrompt: boolean;
+    biometricLock: boolean;
     externalBrowserAuth: string[];
     separateDocumentPatterns: string[];
     deepLinks?: Required<DeepLinkConfig>;

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, Linking, StyleSheet, View } from 'react-native';
+import { AppState, BackHandler, Linking, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import WebViewBase from 'react-native-webview';
 import type { WebViewProps } from 'react-native-webview/lib/WebView';
@@ -41,6 +41,7 @@ interface Maintenance {
 }
 
 const TABS = config.navigation.mode === 'tabs' ? config.navigation.tabs : [];
+const BIOMETRIC_LOCK = config.features.biometricLock;
 
 /**
  * `inset` (the default): the WebView sits inside the safe area, so any website
@@ -76,6 +77,7 @@ export function WebShell(): React.JSX.Element {
   const [booting, setBooting] = useState(updatesEnabled);
   const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
   const [currentUrl, setCurrentUrl] = useState(config.startUrl);
+  const [locked, setLocked] = useState(BIOMETRIC_LOCK);
   const currentUrlRef = useRef(config.startUrl);
   const healthRef = useRef<HealthState>(INITIAL_HEALTH);
 
@@ -179,6 +181,29 @@ export function WebShell(): React.JSX.Element {
     return push.onNotificationTapUrl((url) => loadNative(url));
   }, [loadNative]);
 
+  // --- biometric app-lock: re-lock when the app comes back from the background ---
+  useEffect(() => {
+    if (!BIOMETRIC_LOCK) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background') setLocked(true);
+    });
+    return () => sub.remove();
+  }, []);
+
+  const unlock = useCallback(async () => {
+    try {
+      const { authenticated } = await native.biometricAuthenticate('Unlock');
+      if (authenticated) setLocked(false);
+    } catch {
+      // NOT_SUPPORTED etc. — don't trap the user out of their own app
+      setLocked(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (locked) void unlock();
+  }, [locked, unlock]);
+
   // --- Android hardware back ---
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -269,6 +294,16 @@ export function WebShell(): React.JSX.Element {
     setReloadKey((k) => k + 1);
   }, []);
 
+  if (locked) {
+    return (
+      <OfflineScreen
+        title={`${config.identity.appName} is locked`}
+        body="Unlock with your fingerprint or face."
+        actionLabel="Unlock"
+        onRetry={() => void unlock()}
+      />
+    );
+  }
   if (maintenance) {
     return <OfflineScreen title={maintenance.title} body={maintenance.body} onRetry={retry} />;
   }

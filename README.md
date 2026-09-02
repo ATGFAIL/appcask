@@ -118,7 +118,8 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
 - [~] iOS shell — Swift bridge written, config/materialize done; needs finishing in Xcode ([docs/ios.md](./docs/ios.md))
 - [~] Push (Android / FCM) — wired via `appcask android` + `google-services.json`; needs a Firebase project to verify ([docs/push.md](./docs/push.md))
-- [ ] Drawer navigation, biometric app-lock, in-app review prompt
+- [x] Biometric app-lock (`features.biometricLock`) + in-app review (`window.appcask.requestReview()`)
+- [ ] Drawer navigation, share-target
 
 ## Contributing
 

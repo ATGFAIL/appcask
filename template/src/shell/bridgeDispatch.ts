@@ -154,6 +154,17 @@ async function dispatch(request: RequestMessage, ctx: DispatchContext): Promise<
       return { token: await push.getToken() };
     }
 
+    case 'biometric.authenticate': {
+      onlyParams(params, ['reason']);
+      const reason = stringParam(params, 'reason', { max: 120, optional: true });
+      return await native.biometricAuthenticate(reason);
+    }
+    case 'review.request': {
+      onlyParams(params, []);
+      if (config.features.appReviewPrompt) await native.reviewRequest();
+      return {};
+    }
+
     default:
       throw new BridgeError('NOT_SUPPORTED', `unknown method "${method}"`);
   }
