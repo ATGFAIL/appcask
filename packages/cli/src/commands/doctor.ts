@@ -2,11 +2,17 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { loadProject } from '../project.js';
 import { readPngInfo } from '../png.js';
+import { runProductionChecks } from '../production.js';
 import { CliError, dim, fail, heading, info, line, ok, warn } from '../ui.js';
 
 interface DoctorFlags {
   /** Skip network checks (start URL, assetlinks, AASA). */
   offline: boolean;
+  /** Also run the pre-release / store-review checks. */
+  production?: boolean;
+  keystore?: string;
+  keystorePass?: string;
+  keystoreAlias?: string;
 }
 
 interface Tally {
@@ -90,6 +96,20 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
       await checkAasa(T, config.features.deepLinks.host);
     } else {
       T.info('no deepLinks configured — skipping App Links / Universal Links checks');
+    }
+  }
+
+  // --- production ---
+  if (flags.production) {
+    if (flags.offline) {
+      heading('Production');
+      T.warn('--production needs network — skipped because --offline was passed');
+    } else {
+      await runProductionChecks(T, config, root, {
+        keystore: flags.keystore,
+        keystorePass: flags.keystorePass,
+        keystoreAlias: flags.keystoreAlias,
+      });
     }
   }
 

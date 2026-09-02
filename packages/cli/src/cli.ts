@@ -14,6 +14,7 @@ const BOOLEAN_FLAGS = [
   'force',
   'yes',
   'offline',
+  'production',
   'aab',
   'debug',
   'skip-install',
@@ -30,7 +31,9 @@ ${bold('Usage')}
 
 ${bold('Commands')}
   ${cyan('init')} [dir]           create appcask.config.json and assets/
-  ${cyan('doctor')}               validate the config and check your domain setup
+  ${cyan('doctor')} [--production]  validate the config; --production also checks signing,
+                       the live site (CSP, mixed content, viewport, cookies, UA
+                       sniffing), assetlinks fingerprints, and store-review risk
   ${cyan('assets')}               generate every icon + splash size (preview)
   ${cyan('android')} [--out dir]  materialize the Android project from the config
   ${cyan('build')} android        materialize + build a signed APK / AAB
@@ -40,6 +43,9 @@ ${bold('Options')}
   --yes            init: accept defaults, no prompts
   --force          init / android / build: overwrite existing output
   --offline        doctor: skip network checks
+  --production     doctor: run the pre-release / store-review checks
+  --keystore <p>   doctor --production: release keystore to verify against assetlinks
+  --keystore-pass, --keystore-alias   its password / alias
   --name, --url, --package-name   init: preset an answer
   --out <dir>      android: where to write the project (default <slug>-android)
   --project <dir>  build: use an existing materialized project
@@ -83,7 +89,13 @@ async function main(argv: string[]): Promise<number> {
       return 0;
 
     case 'doctor':
-      await doctorCommand({ offline: flagBool(flags, 'offline') });
+      await doctorCommand({
+        offline: flagBool(flags, 'offline'),
+        production: flagBool(flags, 'production'),
+        keystore: flagStr(flags, 'keystore'),
+        keystorePass: flagStr(flags, 'keystore-pass', 'keystorePass'),
+        keystoreAlias: flagStr(flags, 'keystore-alias', 'keystoreAlias'),
+      });
       return 0;
 
     case 'assets':

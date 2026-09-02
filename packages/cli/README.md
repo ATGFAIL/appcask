@@ -39,8 +39,24 @@ next to your config.
 The release build is self-contained and signed with the template **debug**
 keystore — set a real keystore in `android/app/build.gradle` before publishing.
 
-## `appcask doctor [--offline]`
+## `appcask doctor [--offline] [--production]`
 
 Loads and validates `appcask.config.json`, then checks the start URL is
 reachable, `assetlinks.json` verifies your package, `apple-app-site-association`
 is served as JSON, and the icon / splash sources are the right size and opacity.
+
+`--production` adds the pre-release checks — what actually breaks when the
+wrapped site meets a real device and a store review:
+
+- **signing** — is a real release keystore set up, or would the build ship
+  debug-signed (Play Store rejects that)?
+- **assetlinks fingerprint** — with `--keystore <path> --keystore-pass <pw>`,
+  extracts the SHA-256 and checks it's actually in your published
+  `assetlinks.json` (the #1 reason deep links and the OAuth return silently open
+  the browser)
+- **the live site** — CSP blocking the injected bootstrap script (iOS),
+  `http://` mixed content, a missing/!device-width viewport, `viewport-fit`,
+  cookies set without `Secure` or with `SameSite=Strict` (breaks the OAuth
+  return), HSTS, and User-Agent sniffing / app interstitials
+- **store review** — counts the native capabilities in your config and warns
+  about Apple Guideline 4.2 (a repackaged website gets rejected)

@@ -106,8 +106,8 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Android shell: WebView, router, `window.appcask` bridge, OAuth handoff, offline, back handler
 - [x] Safe-area handling by default (`theme.safeArea: "inset"`)
 - [x] Per-host/path capability scoping for the bridge (`bridge.grants`)
-- [x] CLI: `init`, `doctor`, `assets`, `android` (materialize + rename + icons), `build android`
-- [ ] `appcask doctor --production` — real OAuth / deep-link / signing / store-risk checks
+- [x] CLI: `init`, `doctor` (+ `--production`), `assets`, `android` (materialize + rename + icons), `build android`
+- [x] `appcask doctor --production` — signing, assetlinks fingerprint, live-site (CSP / cookies / viewport / UA), store-review risk
 - [ ] Safe remote updates: version pinning, health check, auto-rollback
 - [ ] Docs site + demo APK in Releases
 - [ ] iOS shell (`ASWebAuthenticationSession`)
