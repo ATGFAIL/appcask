@@ -4,9 +4,23 @@
   "description": "Turn any website into a real Android & iOS app from one config file.",
   "license": "MIT",
   "type": "module",
-  "bin": { "appcask": "./dist/cli.js" },
-  "files": ["dist", "templates"],
-  "keywords": ["webview", "android", "ios", "website-to-app", "react-native", "pwa", "median", "gonative"],
+  "bin": {
+    "appcask": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "keywords": [
+    "webview",
+    "android",
+    "ios",
+    "website-to-app",
+    "react-native",
+    "pwa",
+    "median",
+    "gonative"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -17,10 +31,14 @@
   },
   "dependencies": {
     "@appcask/config": "workspace:*",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "xcode": "^3.0.1"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5"
+    "@types/node": "^22.10.5",
+    "@types/xcode": "^3.0.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

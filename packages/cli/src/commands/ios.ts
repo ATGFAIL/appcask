@@ -2,7 +2,7 @@ import { join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { loadProject } from '../project.js';
 import { materializeAndroid } from '../native/materialize.js';
-import { CliError, bold, cyan, dim, heading, info, line, ok, warn } from '../ui.js';
+import { CliError, cyan, dim, heading, info, line, ok, warn } from '../ui.js';
 
 interface IosFlags {
   out?: string;
@@ -10,9 +10,10 @@ interface IosFlags {
 }
 
 /**
- * Materialize the project (shared with `appcask android`) and patch the iOS
- * bundle id / display name / version. Finishing the iOS build still needs a Mac
- * with Xcode — this prints the remaining steps.
+ * Materialize the project (shared with `appcask android`) and patch iOS: bundle
+ * id, display name, version, usage strings, and the Swift bridge is wired into
+ * the Xcode target. Building an .app / .ipa needs macOS — your own Mac, or the
+ * `ios.yml` GitHub Actions workflow (a hosted macOS runner, no Mac required).
  */
 export async function iosCommand(flags: IosFlags): Promise<void> {
   const { config, root, raw } = await loadProject();
@@ -29,21 +30,20 @@ export async function iosCommand(flags: IosFlags): Promise<void> {
   ok(`bundle id      ${config.identity.packageName}`);
   ok(`display name   ${config.identity.appName}`);
   ok(`version        ${config.identity.version}`);
+  ok('Swift bridge   wired into the Xcode target');
   for (const w of result.warnings) warn(w);
 
-  warn('iOS is not finished — the shell compiles on Android; the Swift bridge needs Xcode.');
+  warn('iOS is not device-verified yet — the Swift module compiles but has not run on a device.');
 
-  heading('On a Mac');
-  line(`  cd ${dim(rel(outDir))} && npm install`);
-  line(`  cd ios && pod install`);
-  line(`  open ${bold('ios/AppcaskShell.xcworkspace')}`);
+  heading('Build it');
+  info('No Mac? Push this repo and run the "Build iOS" GitHub Action (a hosted macOS runner).');
   line();
-  line(`  In Xcode, add to the AppcaskShell target:`);
-  info('ios/AppcaskShell/AppcaskNative.swift');
-  info('ios/AppcaskShell/AppcaskNative.mm');
-  info('set Build Settings → Objective-C Bridging Header → ios/AppcaskShell/AppcaskShell-Bridging-Header.h');
+  line(`  On a Mac:`);
+  line(`    cd ${dim(rel(outDir))} && npm install`);
+  line(`    cd ios && pod install`);
+  line(`    ${cyan('npx react-native run-ios')}`);
   line();
-  line(`  Then ${cyan('npx react-native run-ios')}. See docs/ios.md.`);
+  line(dim(`  OAuth / Universal Links still need an Associated Domain in Xcode — see docs/ios.md.`));
 }
 
 function rel(p: string): string {

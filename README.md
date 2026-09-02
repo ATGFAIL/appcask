@@ -16,9 +16,9 @@ open-source and MIT-licensed.
 
 ---
 
-> **Status:** the Android shell and the CLI work end to end and build a running
-> APK (locally and [in the cloud](#no-terminal-build-it-in-the-cloud)). iOS and
-> push notifications are on the [roadmap](#roadmap).
+> **Status:** Android is done — the CLI builds a running APK locally and [in the
+> cloud](#no-terminal-build-it-in-the-cloud). iOS compiles on CI but is not
+> device-verified; push is wired but needs a Firebase project. See the [roadmap](#roadmap).
 
 ## No terminal? Build it in the cloud
 
@@ -116,7 +116,7 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
 - [x] Native navigation — bottom tabs and a slide-out drawer (`navigation.mode`)
 - [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
-- [~] iOS shell — Swift bridge written, config/materialize done; needs finishing in Xcode ([docs/ios.md](./docs/ios.md))
+- [~] iOS shell — Swift bridge wired into the Xcode target; compiles on a hosted macOS runner (no Mac needed), not device-verified ([docs/ios.md](./docs/ios.md))
 - [~] Push (Android / FCM) — wired via `appcask android` + `google-services.json`; needs a Firebase project to verify ([docs/push.md](./docs/push.md))
 - [x] Biometric app-lock (`features.biometricLock`) + in-app review (`window.appcask.requestReview()`)
 - [x] Deep links open the app at the URL (cold start + running) + Android share-target (`features.shareTarget`)

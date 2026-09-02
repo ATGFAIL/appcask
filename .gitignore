@@ -25,6 +25,8 @@ template/*.jks
 .appcask/
 appcask-build/
 *-android/
+*-app/
+ios-app/
 
 # CLI publish bundle (built by prepack)
 packages/cli/templates/

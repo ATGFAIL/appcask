@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
+import xcode from 'xcode';
 import type { ResolvedAppcaskConfig } from '@appcask/config';
 import { appcaskPackageDirs, templateDir } from '../paths.js';
 import { generateAndroidIcons, generatePlayStoreIcon } from './icons.js';
@@ -206,15 +207,17 @@ async function patchAndroid(
 }
 
 /**
- * The safe subset of iOS patching: bundle id, display name, version, and the
- * usage strings. Adding the Swift bridge files to the Xcode target and setting
- * the bridging header still needs Xcode — see docs/ios.md.
+ * iOS patching: bundle id, display name, version, usage strings, and — via the
+ * `xcode` pbxproj parser — adding the Swift bridge files to the target and
+ * setting the bridging header, so the project compiles without opening Xcode
+ * (a macOS CI runner is enough — see .github/workflows/ios.yml).
  */
 async function patchIos(outDir: string, config: ResolvedAppcaskConfig): Promise<void> {
   const iosDir = join(outDir, 'ios');
   if (!existsSync(iosDir)) return;
+  const pbxPath = join(iosDir, 'AppcaskShell.xcodeproj', 'project.pbxproj');
 
-  await edit(join(iosDir, 'AppcaskShell.xcodeproj', 'project.pbxproj'), (c) =>
+  await edit(pbxPath, (c) =>
     c
       .replace(
         /PRODUCT_BUNDLE_IDENTIFIER = "[^"]*";/g,
@@ -222,6 +225,8 @@ async function patchIos(outDir: string, config: ResolvedAppcaskConfig): Promise<
       )
       .replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${config.identity.version};`),
   );
+
+  wireXcodeBridge(pbxPath);
 
   await edit(join(iosDir, 'AppcaskShell', 'Info.plist'), (plist) => {
     let out = plist.replace(
@@ -240,6 +245,34 @@ async function patchIos(outDir: string, config: ResolvedAppcaskConfig): Promise<
     }
     return out;
   });
+}
+
+/** Add AppcaskNative.swift / .mm to the app target and set the bridging header. */
+function wireXcodeBridge(pbxPath: string): void {
+  if (!existsSync(pbxPath)) return;
+  if (readFileSync(pbxPath, 'utf8').includes('AppcaskNative.swift')) return; // already wired
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const proj: any = xcode.project(pbxPath);
+    proj.parseSync();
+
+    const target = proj.getFirstTarget().uuid;
+    const groups = proj.hash.project.objects.PBXGroup as Record<string, { name?: string; path?: string }>;
+    const appGroup = Object.keys(groups).find(
+      (k) => !k.endsWith('_comment') && (groups[k]?.name === 'AppcaskShell' || groups[k]?.path === 'AppcaskShell'),
+    );
+
+    proj.addSourceFile('AppcaskShell/AppcaskNative.swift', { target }, appGroup);
+    proj.addSourceFile('AppcaskShell/AppcaskNative.mm', { target }, appGroup);
+    proj.addHeaderFile('AppcaskShell/AppcaskShell-Bridging-Header.h', {}, appGroup);
+    proj.updateBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', '"AppcaskShell/AppcaskShell-Bridging-Header.h"');
+    proj.updateBuildProperty('SWIFT_VERSION', '5.0');
+    proj.updateBuildProperty('CLANG_ENABLE_MODULES', 'YES');
+
+    writeFileSync(pbxPath, proj.writeSync());
+  } catch {
+    // Leave the project as-is; docs/ios.md covers the manual steps.
+  }
 }
 
 const FIREBASE_VERSION = '^23.4.1';

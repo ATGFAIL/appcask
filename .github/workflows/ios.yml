@@ -1,0 +1,57 @@
+name: Build iOS
+
+# Compiles the iOS shell on a hosted macOS runner — no Mac required.
+# Produces an unsigned .app (a build check). A signed .ipa needs an Apple
+# Developer account + signing secrets; see docs/ios.md.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'template/ios/**'
+      - 'packages/cli/src/native/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Build the CLI
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r --filter "./packages/*" build
+
+      - name: Materialize the MDN example
+        working-directory: examples/mdn
+        run: |
+          node ../../packages/cli/dist/cli.js ios --out ios-app
+          cd ios-app
+          npm install --no-audit --no-fund
+
+      - name: pod install
+        working-directory: examples/mdn/ios-app/ios
+        run: |
+          bundle install || gem install cocoapods
+          pod install --repo-update
+
+      - name: xcodebuild (unsigned, build only)
+        working-directory: examples/mdn/ios-app/ios
+        run: |
+          xcodebuild \
+            -workspace AppcaskShell.xcworkspace \
+            -scheme AppcaskShell \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build | tail -50

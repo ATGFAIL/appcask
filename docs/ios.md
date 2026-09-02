@@ -1,50 +1,49 @@
 # iOS
 
-**Status: partial.** The React Native shell, the config, the router, and the
-bridge protocol are cross-platform and run on iOS as-is. What's missing is the
-last mile of the **native** side, which needs a Mac with Xcode.
+**Status: builds, not device-verified.** The shell, config, router, and bridge
+protocol are cross-platform. The Swift native module is written and
+`appcask ios` wires it into the Xcode project — but it hasn't run on a device
+yet.
 
-## What works today
+## You don't need a Mac
 
-`appcask ios` materializes the project and patches:
+`appcask ios` patches everything a Mac would need you to click through in Xcode:
 
-- the bundle id, display name, and version (`project.pbxproj`, `Info.plist`)
+- bundle id, display name, version
 - `NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription`
+- `AppcaskNative.swift` + `AppcaskNative.mm` added to the app target
+- the Objective-C bridging header set
 
-The JS shell (`WebShell`, routing, `window.appcask`, offline, updates, tabs)
-works unchanged.
+To compile-check it, push the repo and run the **Build iOS** GitHub Action — it
+runs `pod install` + `xcodebuild` on a hosted macOS runner (free for public
+repos) and fails if the Swift doesn't compile.
 
-## What you finish in Xcode
+## Getting an app you can install
 
-The Swift bridge module is written but not yet wired into the Xcode target:
+An unsigned build won't run on a real iPhone. To install one you need an **Apple
+Developer account** ($99/yr) — then, still with no Mac:
 
-```bash
-cd <project> && npm install
-cd ios && pod install
-open ios/<Name>.xcworkspace
-```
+1. In the Action, add signing: an `.p12` certificate + a provisioning profile as
+   repo secrets, and switch `xcodebuild` to `archive` + `-exportArchive`.
+2. Upload the `.ipa` to **TestFlight** (`xcrun altool` / `notarytool` from the
+   runner), or distribute ad-hoc.
 
-In Xcode:
+The workflow in `.github/workflows/ios.yml` is the build-only version; extending
+it for signing is a small change once you have the certificate.
 
-1. Add `ios/AppcaskShell/AppcaskNative.swift` and `AppcaskNative.mm` to the app
-   target (drag them in, or File → Add Files).
-2. Build Settings → **Objective-C Bridging Header** →
-   `AppcaskShell/AppcaskShell-Bridging-Header.h` (Xcode will offer to create one
-   the first time you add a Swift file — point it at the existing header).
-3. For the OAuth handoff, add a **Custom URL scheme** or an **Associated Domain**
-   for your callback host (`applinks:<your-host>`), matching `features.deepLinks`.
-4. `npx react-native run-ios`.
+## The Swift module
 
-`AppcaskNative.swift` implements `haptic`, `share`, `openExternal`
-(`SFSafariViewController`), `secureGet/Set/Remove` (Keychain, verify-after-write),
-`clipboard`, `osVersion`, and `startAuthSession` (`ASWebAuthenticationSession`).
-It mirrors `AppcaskNativeModule.kt` — read that for the intended behaviour.
+`AppcaskNative.swift` mirrors `AppcaskNativeModule.kt`: `haptic`, `share`,
+`openExternal` (`SFSafariViewController`), Keychain secure store
+(verify-after-write), `clipboard`, `osVersion`, and `startAuthSession`
+(`ASWebAuthenticationSession`).
 
-## Not started
+## Still to do
 
-- `theme.safeArea` on iOS (the RN `SafeAreaView` covers most of it; notch /
-  home-indicator colour needs a check)
-- App Store `PrivacyInfo.xcprivacy` entries for the APIs used
-- push (APNs)
-
-Contributions welcome — this is the biggest open item.
+- Run it on a device and fix what breaks.
+- OAuth / Universal Links: add an **Associated Domain**
+  (`applinks:<your-host>`) — this is an Xcode entitlement `appcask ios` does not
+  set yet.
+- `theme.safeArea` on iOS (RN `SafeAreaView` covers most of it).
+- `PrivacyInfo.xcprivacy` entries for the APIs used.
+- Push / APNs.
