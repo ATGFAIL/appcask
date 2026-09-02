@@ -16,6 +16,15 @@ import {
 
 const OLD_PACKAGE = 'com.appcaskshell';
 
+// The template's metro.config.js watches the monorepo root; a materialized
+// project is standalone (the @appcask/* packages are vendored under it), so it
+// gets a plain config instead.
+const STANDALONE_METRO = `const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+
+// appcask-packages/ holds the vendored @appcask/* packages, linked via file:.
+module.exports = mergeConfig(getDefaultConfig(__dirname), {});
+`;
+
 const COPY_SKIP = new Set([
   'node_modules',
   'build',
@@ -56,6 +65,12 @@ export async function materializeAndroid(
     },
   });
 
+  // The template's jest setup reaches back into the monorepo — drop it from a
+  // standalone project.
+  for (const p of ['jest.config.js', 'jest.resolver.js', '__tests__', 'README.md']) {
+    await rm(join(outDir, p), { recursive: true, force: true });
+  }
+
   await vendorPackages(outDir);
   await writeFile(
     join(outDir, 'appcask.config.json'),
@@ -64,6 +79,7 @@ export async function materializeAndroid(
   );
 
   await patchPackageJson(outDir, config);
+  await writeFile(join(outDir, 'metro.config.js'), STANDALONE_METRO, 'utf8');
   await patchAndroid(outDir, config, warnings);
   const wroteIcons = await writeIcons(outDir, configRoot, config, warnings);
 
