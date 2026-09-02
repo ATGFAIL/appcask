@@ -61,6 +61,17 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       push: f.push
         ? { provider: f.push.provider, onTapUrlParam: f.push.onTapUrlParam ?? 'url' }
         : undefined,
+      updates: f.updates
+        ? {
+            manifestUrl: f.updates.manifestUrl,
+            healthCheck: {
+              selector: f.updates.healthCheck?.selector,
+              timeoutMs: f.updates.healthCheck?.timeoutMs ?? 12_000,
+              maxFailures: f.updates.healthCheck?.maxFailures ?? 2,
+            },
+            onUnhealthy: f.updates.onUnhealthy ?? 'previous',
+          }
+        : undefined,
     },
     bridge: {
       allowedOrigins,

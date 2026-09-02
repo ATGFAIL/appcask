@@ -10,6 +10,9 @@ export type {
   CapabilityMatch,
   DeepLinkConfig,
   PushConfig,
+  UpdatesConfig,
+  HealthCheckConfig,
+  UpdateManifest,
   NavigationTab,
   StatusBarTheme,
   SplashTheme,
@@ -21,6 +24,18 @@ export {
   grantedCapabilities,
   type CapabilityDecision,
 } from './capabilities.js';
+
+export {
+  parseManifest,
+  manifestGate,
+  reduceHealth,
+  compareVersions,
+  INITIAL_HEALTH,
+  type ManifestGate,
+  type HealthState,
+  type HealthAction,
+  type HealthPolicy,
+} from './updates.js';
 
 export {
   validateConfig,

@@ -2,26 +2,33 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { config } from '../config';
 
-export function OfflineScreen({ onRetry }: { onRetry: () => void }): React.JSX.Element {
-  const bg = config.theme.splash?.background ?? '#ffffff';
+interface Props {
+  onRetry?: () => void;
+  title?: string;
+  body?: string;
+  actionLabel?: string;
+}
+
+/** The built-in full-screen message — offline, maintenance, or "please update". */
+export function OfflineScreen({ onRetry, title, body, actionLabel }: Props): React.JSX.Element {
+  const bg = config.theme.splash?.background ?? config.theme.statusBar.color ?? '#ffffff';
   const dark = isDark(bg);
   const fg = dark ? '#ffffff' : '#111111';
 
   return (
     <View style={[styles.container, { backgroundColor: bg }]}>
-      <Text style={[styles.title, { color: fg }]}>You're offline</Text>
+      <Text style={[styles.title, { color: fg }]}>{title ?? "You're offline"}</Text>
       <Text style={[styles.body, { color: fg, opacity: 0.7 }]}>
-        {config.identity.appName} needs a connection to load.
+        {body ?? `${config.identity.appName} needs a connection to load.`}
       </Text>
-      <Pressable
-        onPress={onRetry}
-        style={({ pressed }) => [
-          styles.button,
-          { borderColor: fg, opacity: pressed ? 0.6 : 1 },
-        ]}
-      >
-        <Text style={[styles.buttonText, { color: fg }]}>Try again</Text>
-      </Pressable>
+      {onRetry ? (
+        <Pressable
+          onPress={onRetry}
+          style={({ pressed }) => [styles.button, { borderColor: fg, opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Text style={[styles.buttonText, { color: fg }]}>{actionLabel ?? 'Try again'}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -38,7 +45,7 @@ function isDark(hex: string): boolean {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
+  title: { fontSize: 20, fontWeight: '700', marginBottom: 8, textAlign: 'center' },
   body: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
   button: { borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 24 },
   buttonText: { fontSize: 15, fontWeight: '600' },

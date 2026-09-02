@@ -7,16 +7,36 @@ import type {
   WebViewMessageEvent,
   WebViewNavigation,
   WebViewErrorEvent,
+  WebViewHttpErrorEvent,
   ShouldStartLoadRequest,
 } from 'react-native-webview/lib/WebViewTypes';
 import { createRouter } from '@appcask/router';
+import { manifestGate, reduceHealth, type HealthState, INITIAL_HEALTH } from '@appcask/config/updates';
 import { config } from '../config';
 import { native } from './native';
 import { handleBridgeMessage, type DispatchContext } from './bridgeDispatch';
 import { beforeContentScript, contextScript, deliverScript } from './injection';
 import { OfflineScreen } from './OfflineScreen';
+import { SHELL_VERSION } from './version';
+import {
+  updatesEnabled,
+  loadManifest,
+  loadHealthState,
+  saveHealthState,
+  healthCheckScript,
+  parseHealthMessage,
+} from './updates';
 
 const UA_TAG = `appcask/${config.identity.version}`;
+const HEALTH_POLICY = {
+  maxFailures: config.features.updates?.healthCheck.maxFailures ?? 2,
+  onUnhealthy: config.features.updates?.onUnhealthy ?? 'previous',
+} as const;
+
+interface Maintenance {
+  title: string;
+  body: string;
+}
 
 /**
  * `inset` (the default): the WebView sits inside the safe area, so any website
@@ -49,7 +69,10 @@ export function WebShell(): React.JSX.Element {
   const [reloadKey, setReloadKey] = useState(0);
   const [canGoBack, setCanGoBack] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [booting, setBooting] = useState(updatesEnabled);
+  const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
   const currentUrlRef = useRef(config.startUrl);
+  const healthRef = useRef<HealthState>(INITIAL_HEALTH);
 
   const router = useMemo(
     () =>
@@ -67,6 +90,62 @@ export function WebShell(): React.JSX.Element {
     setSourceUrl(url);
     setReloadKey((k) => k + 1);
   }, []);
+
+  // --- updates: manifest gate + last-good state, before the first load ---
+  useEffect(() => {
+    if (!updatesEnabled) return;
+    let cancelled = false;
+    void (async () => {
+      const [manifest, health] = await Promise.all([loadManifest(), loadHealthState()]);
+      if (cancelled) return;
+      healthRef.current = health;
+      const gate = manifestGate(manifest, SHELL_VERSION);
+      if (gate.stop) {
+        setMaintenance({
+          title: gate.reason === 'shell-outdated' ? 'Update required' : `${config.identity.appName} is updating`,
+          body: gate.message ?? 'Please check back in a few minutes.',
+        });
+      } else if (manifest?.startUrl && manifest.startUrl !== currentUrlRef.current) {
+        currentUrlRef.current = manifest.startUrl;
+        setSourceUrl(manifest.startUrl);
+      }
+      setBooting(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Fold a load outcome into the health state and act on it. */
+  const handleHealth = useCallback(
+    (healthy: boolean) => {
+      if (!updatesEnabled) return;
+      const { state, action } = reduceHealth(
+        healthRef.current,
+        { healthy, url: currentUrlRef.current },
+        HEALTH_POLICY,
+      );
+      healthRef.current = state;
+      saveHealthState(state);
+      switch (action.type) {
+        case 'retry':
+          setReloadKey((k) => k + 1);
+          break;
+        case 'load':
+          loadNative(action.url);
+          break;
+        case 'offline-screen':
+          setMaintenance({
+            title: `${config.identity.appName} is having trouble`,
+            body: "We couldn't load the latest version. Please try again shortly.",
+          });
+          break;
+        case 'none':
+          break;
+      }
+    },
+    [loadNative],
+  );
 
   const dispatchContext = useMemo<DispatchContext>(
     () => ({
@@ -146,14 +225,20 @@ export function WebShell(): React.JSX.Element {
 
   const onMessage = useCallback(
     async (event: WebViewMessageEvent) => {
+      const data = event.nativeEvent.data;
+      const health = parseHealthMessage(data);
+      if (health) {
+        handleHealth(health.healthy);
+        return;
+      }
       // currentUrl must be the live value — capability grants are per-page.
-      const response = await handleBridgeMessage(event.nativeEvent.data, {
+      const response = await handleBridgeMessage(data, {
         ...dispatchContext,
         currentUrl: currentUrlRef.current,
       });
       if (response) webRef.current?.injectJavaScript(deliverScript(response));
     },
-    [dispatchContext],
+    [dispatchContext, handleHealth],
   );
 
   const onNavigationStateChange = useCallback((nav: WebViewNavigation) => {
@@ -163,11 +248,21 @@ export function WebShell(): React.JSX.Element {
 
   const retry = useCallback(() => {
     setOffline(false);
+    setMaintenance(null);
+    healthRef.current = INITIAL_HEALTH;
+    currentUrlRef.current = config.startUrl;
+    setSourceUrl(config.startUrl);
     setReloadKey((k) => k + 1);
   }, []);
 
+  if (maintenance) {
+    return <OfflineScreen title={maintenance.title} body={maintenance.body} onRetry={retry} />;
+  }
   if (offline && config.features.offlinePage) {
     return <OfflineScreen onRetry={retry} />;
+  }
+  if (booting) {
+    return <View style={[styles.fill, { backgroundColor: INSET_BG }]} />;
   }
 
   const Frame = SAFE_AREA_MODE === 'inset' ? SafeAreaView : View;
@@ -186,7 +281,14 @@ export function WebShell(): React.JSX.Element {
         onMessage={onMessage}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         onNavigationStateChange={onNavigationStateChange}
-        onLoadEnd={() => webRef.current?.injectJavaScript(contextScript(dispatchContext))}
+        onLoadEnd={() => {
+          webRef.current?.injectJavaScript(contextScript(dispatchContext));
+          if (updatesEnabled) webRef.current?.injectJavaScript(healthCheckScript());
+        }}
+        onHttpError={(e: WebViewHttpErrorEvent) => {
+          // a 5xx on the main frame means the deploy itself is broken
+          if (updatesEnabled && e.nativeEvent.statusCode >= 500) handleHealth(false);
+        }}
         pullToRefreshEnabled={config.features.pullToRefresh}
         allowsBackForwardNavigationGestures
         setSupportMultipleWindows={false}

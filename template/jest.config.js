@@ -19,6 +19,7 @@ module.exports = {
     '^@appcask/router$': src('router/src/index.ts'),
     '^@appcask/config/defaults$': src('config/src/defaults.ts'),
     '^@appcask/config/capabilities$': src('config/src/capabilities.ts'),
+    '^@appcask/config/updates$': src('config/src/updates.ts'),
     '^@appcask/config$': src('config/src/types.ts'),
   },
   transformIgnorePatterns: [

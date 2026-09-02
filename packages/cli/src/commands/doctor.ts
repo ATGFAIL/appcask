@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { loadProject } from '../project.js';
 import { readPngInfo } from '../png.js';
+import { parseManifest } from '@appcask/config/updates';
 import { runProductionChecks } from '../production.js';
 import { CliError, dim, fail, heading, info, line, ok, warn } from '../ui.js';
 
@@ -56,6 +57,11 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
   if (config.features.separateDocumentPatterns.length > 0) {
     T.info(`native loadUrl for paths: ${config.features.separateDocumentPatterns.join(', ')}`);
   }
+  if (config.features.updates) {
+    const u = config.features.updates;
+    const hc = u.healthCheck.selector ? `wait for "${u.healthCheck.selector}"` : 'page loads without a 5xx';
+    T.info(`updates: health check = ${hc}, after ${u.healthCheck.maxFailures} fails → ${u.onUnhealthy}`);
+  }
 
   // --- bridge capabilities ---
   if (config.bridge.grants === null) {
@@ -91,6 +97,9 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
   } else {
     heading('Network');
     await checkReachable(T, config.startUrl);
+    if (config.features.updates?.manifestUrl) {
+      await checkManifest(T, config.features.updates.manifestUrl);
+    }
     if (config.features.deepLinks) {
       await checkAssetLinks(T, config.features.deepLinks.host, config.identity.packageName);
       await checkAasa(T, config.features.deepLinks.host);
@@ -180,6 +189,32 @@ async function checkReachable(T: Checks, url: string): Promise<void> {
     else T.warn(`startUrl returned ${res.status}`);
   } catch (err) {
     T.warn(`could not reach startUrl: ${(err as Error).message}`);
+  }
+}
+
+async function checkManifest(T: Checks, url: string): Promise<void> {
+  try {
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) {
+      T.warn(`update manifest ${url} returned ${res.status} — the app falls back to the config startUrl (fine)`);
+      return;
+    }
+    const manifest = parseManifest(await res.text());
+    if (!manifest) {
+      T.fail(`update manifest ${url} is not valid JSON — fix it or the app can't read it`);
+      return;
+    }
+    if (manifest.blocked) {
+      T.warn('update manifest has "blocked": true — every install currently shows the maintenance screen');
+    }
+    const bits = [
+      manifest.startUrl && `startUrl → ${manifest.startUrl}`,
+      manifest.minShellVersion && `minShellVersion ${manifest.minShellVersion}`,
+      manifest.message && 'has a message',
+    ].filter(Boolean);
+    T.ok(`update manifest reachable${bits.length ? ` (${bits.join(', ')})` : ''}`);
+  } catch (err) {
+    T.warn(`update manifest check failed: ${(err as Error).message}`);
   }
 }
 

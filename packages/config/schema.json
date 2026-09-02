@@ -152,6 +152,42 @@
               "description": "Data key on the push payload holding the URL to open on tap."
             }
           }
+        },
+        "updates": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Safe handling of the live site: a health check after each load, a remote kill-switch, and fall-back to the last version that worked.",
+          "properties": {
+            "manifestUrl": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://",
+              "description": "A JSON file you host (e.g. https://site.com/.well-known/appcask.json). Fetched on launch; can override startUrl, force a maintenance screen (\"blocked\": true), require a minimum shell version, or show a banner."
+            },
+            "healthCheck": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "selector": {
+                  "type": "string",
+                  "description": "A CSS selector that must appear for the page to count as healthy. Default: the page just has to finish loading without an HTTP error."
+                },
+                "timeoutMs": { "type": "integer", "minimum": 1000, "maximum": 60000, "default": 12000 },
+                "maxFailures": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 2,
+                  "description": "Consecutive failed loads before onUnhealthy fires."
+                }
+              }
+            },
+            "onUnhealthy": {
+              "enum": ["offline-screen", "retry", "previous"],
+              "default": "previous",
+              "description": "'previous': reload the last URL that passed the health check. 'offline-screen': show the built-in screen. 'retry': just reload."
+            }
+          }
         }
       }
     },

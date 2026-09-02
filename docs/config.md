@@ -67,7 +67,13 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
       "pathPatterns": ["/p/*", "/order/*"]   //  `appcask doctor` checks it for you.
     },
 
-    "push": { "provider": "fcm", "onTapUrlParam": "url" }   // roadmap
+    "push": { "provider": "fcm", "onTapUrlParam": "url" },  // roadmap
+
+    "updates": {                        // health check + kill switch + fall back to the last
+      "manifestUrl": "https://acme.example/.well-known/appcask.json",   // a JSON file you host
+      "healthCheck": { "selector": "#app", "timeoutMs": 12000, "maxFailures": 2 },
+      "onUnhealthy": "previous"         // "previous" | "offline-screen" | "retry"
+    }
   },
 
   "bridge": {

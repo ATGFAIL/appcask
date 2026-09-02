@@ -74,6 +74,7 @@ and that gap is exactly where the hard, under-documented problems live:
 | **Deep links / App Links** | `assetlinks.json` / `apple-app-site-association` misconfigured = links open the browser, not the app | `appcask doctor` checks reachability and format; the CLI writes the intent filters |
 | **The web header hides under the status bar** | a full-screen WebView has no chrome to push the page down, and Android 15+ forces edge-to-edge | `theme.safeArea: "inset"` (default) pads the WebView to the safe area — any site looks right unchanged |
 | **The bridge is an open API to whatever's in the WebView** | third-party pages and injected scripts can call `window.appcask` too | `bridge.grants` scopes each capability to a host / path — session storage only under `/account`, etc. |
+| **A bad web deploy reaches every install instantly** | the app loads a live URL — there's no review gate | `features.updates`: a health check per load, auto fall-back to the last working version, and a JSON kill-switch you host |
 
 See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 
@@ -108,7 +109,7 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Per-host/path capability scoping for the bridge (`bridge.grants`)
 - [x] CLI: `init`, `doctor` (+ `--production`), `assets`, `android` (materialize + rename + icons), `build android`
 - [x] `appcask doctor --production` — signing, assetlinks fingerprint, live-site (CSP / cookies / viewport / UA), store-review risk
-- [ ] Safe remote updates: version pinning, health check, auto-rollback
+- [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
 - [ ] Docs site + demo APK in Releases
 - [ ] iOS shell (`ASWebAuthenticationSession`)
 - [ ] Downloads + `<input type=file>` camera capture

@@ -78,6 +78,39 @@ export interface PushConfig {
   onTapUrlParam?: string;
 }
 
+export interface HealthCheckConfig {
+  /** A CSS selector that must appear for the page to count as healthy. */
+  selector?: string;
+  /** How long to wait for `selector` / load. Default `12000`. */
+  timeoutMs?: number;
+  /** Consecutive failed loads before `onUnhealthy` fires. Default `2`. */
+  maxFailures?: number;
+}
+
+export interface UpdatesConfig {
+  /** A JSON file you host — fetched on launch. Can override `startUrl`, force a
+   *  maintenance screen, require a minimum shell version, or show a banner. */
+  manifestUrl?: string;
+  healthCheck?: HealthCheckConfig;
+  /**
+   * `previous` (default): reload the last URL that passed the health check.
+   * `offline-screen`: show the built-in screen. `retry`: just reload.
+   */
+  onUnhealthy?: 'offline-screen' | 'retry' | 'previous';
+}
+
+/** The shape of the file at `updates.manifestUrl`. All fields optional. */
+export interface UpdateManifest {
+  /** Override the URL the app loads. */
+  startUrl?: string;
+  /** Show the maintenance screen instead of loading anything. */
+  blocked?: boolean;
+  /** A message for the maintenance / banner screen. */
+  message?: string;
+  /** Apps older than this show a "please update" screen. */
+  minShellVersion?: string;
+}
+
 export interface AppcaskFeatures {
   pullToRefresh?: boolean;
   /** Show a built-in offline screen when a load fails with no connection. Default `true`. */
@@ -104,6 +137,8 @@ export interface AppcaskFeatures {
   deepLinks?: DeepLinkConfig;
   /** Push notifications (roadmap). */
   push?: PushConfig;
+  /** Health check + remote kill-switch + fall-back to the last working version. */
+  updates?: UpdatesConfig;
 }
 
 export interface CapabilityMatch {
@@ -181,6 +216,11 @@ export interface ResolvedAppcaskConfig {
     separateDocumentPatterns: string[];
     deepLinks?: Required<DeepLinkConfig>;
     push?: Required<PushConfig>;
+    updates?: {
+      manifestUrl?: string;
+      healthCheck: { selector?: string; timeoutMs: number; maxFailures: number };
+      onUnhealthy: 'offline-screen' | 'retry' | 'previous';
+    };
   };
   bridge: {
     allowedOrigins: string[];

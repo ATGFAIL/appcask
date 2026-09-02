@@ -13,5 +13,7 @@ const config = resolveConfig(json);               // validates + fills every def
 - `validateConfig(data)` / `assertConfig(data)` — validate against the schema (ajv).
 - `resolveConfig(data)` — validate, then apply defaults → `ResolvedAppcaskConfig`.
 - `@appcask/config/defaults` → `applyDefaults(config)` — **pure**, no ajv / Node built-ins, safe to run in the React Native shell (the CLI has already validated at build time).
+- `@appcask/config/capabilities` → `checkCapability(grants, url, method)` — enforce `bridge.grants` on the native side.
+- `@appcask/config/updates` → `parseManifest`, `manifestGate`, `reduceHealth` — the pure logic behind `features.updates`.
 
 Derived defaults: `internalHosts` ← host of `startUrl`; `bridge.allowedOrigins` ← `https://<internalHost>`; `statusBar.style` ← `dark`; `safeArea` ← `css-vars`; `navigation.mode` ← `single`.
