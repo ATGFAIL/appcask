@@ -10,6 +10,7 @@ import {
   deeplinkHost,
 } from './androidPatch.js';
 import { resolveConfig } from '@appcask/config';
+import { sanitizedPackageJson } from './materialize.js';
 
 const config = resolveConfig({
   identity: { appName: 'ATG Shop', packageName: 'net.atgofficial.atgshop', version: '2.4.1' },
@@ -105,6 +106,40 @@ describe('colorsXml', () => {
     expect(out).toContain('<color name="appcask_splash_background">#0b3d2e</color>');
     // nav bar falls back to the status bar colour
     expect(out).toContain('<color name="appcask_navigation_bar">#0b0b10</color>');
+  });
+});
+
+describe('sanitizedPackageJson', () => {
+  it('drops devDependencies and workspace:/file: deps', () => {
+    const out = JSON.parse(
+      sanitizedPackageJson(
+        JSON.stringify({
+          name: '@appcask/router',
+          version: '0.1.0',
+          type: 'module',
+          main: './dist/index.js',
+          scripts: { build: 'tsc' },
+          dependencies: { ajv: '^8.0.0', '@appcask/bridge': 'file:../bridge' },
+          devDependencies: { '@appcask/config': 'workspace:*' },
+        }),
+      ),
+    );
+    expect(out).toEqual({
+      name: '@appcask/router',
+      version: '0.1.0',
+      type: 'module',
+      main: './dist/index.js',
+      dependencies: { ajv: '^8.0.0' },
+    });
+  });
+
+  it('rewrites a workspace: runtime dep to a vendored sibling', () => {
+    const out = JSON.parse(
+      sanitizedPackageJson(
+        JSON.stringify({ name: '@appcask/web', version: '1.0.0', dependencies: { '@appcask/bridge': 'workspace:*' } }),
+      ),
+    );
+    expect(out.dependencies).toEqual({ '@appcask/bridge': 'file:../bridge' });
   });
 });
 

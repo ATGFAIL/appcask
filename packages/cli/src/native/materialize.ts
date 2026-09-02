@@ -94,7 +94,7 @@ async function vendorPackages(outDir: string): Promise<void> {
     const dest = join(vendorDir, short);
     await mkdir(dest, { recursive: true });
     await cp(join(dir, 'dist'), join(dest, 'dist'), { recursive: true });
-    await cp(join(dir, 'package.json'), join(dest, 'package.json'));
+    await writeFile(join(dest, 'package.json'), sanitizedPackageJson(await readFile(join(dir, 'package.json'), 'utf8')), 'utf8');
     if (existsSync(join(dir, 'schema.json'))) {
       await cp(join(dir, 'schema.json'), join(dest, 'schema.json'));
     }
@@ -110,6 +110,27 @@ async function vendorPackages(outDir: string): Promise<void> {
     }
   }
   await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+}
+
+/**
+ * A vendored package ships pre-built `dist/`. Keep only the fields npm needs to
+ * link it, and drop devDependencies / `workspace:` + `file:` deps that would
+ * make `npm install` fail in a standalone project.
+ */
+export function sanitizedPackageJson(source: string): string {
+  const p = JSON.parse(source) as Record<string, unknown>;
+  const keep = ['name', 'version', 'description', 'license', 'type', 'main', 'types', 'exports', 'sideEffects'] as const;
+  const out: Record<string, unknown> = {};
+  for (const k of keep) if (p[k] !== undefined) out[k] = p[k];
+
+  const deps = (p.dependencies ?? {}) as Record<string, string>;
+  const cleanDeps: Record<string, string> = {};
+  for (const [name, range] of Object.entries(deps)) {
+    if (range.startsWith('workspace:')) cleanDeps[name] = `file:../${name.split('/')[1]}`;
+    else if (!range.startsWith('file:')) cleanDeps[name] = range;
+  }
+  if (Object.keys(cleanDeps).length > 0) out.dependencies = cleanDeps;
+  return JSON.stringify(out, null, 2) + '\n';
 }
 
 async function patchPackageJson(outDir: string, config: ResolvedAppcaskConfig): Promise<void> {
