@@ -15,6 +15,20 @@ npm test            # jest — the bridge dispatcher
 npm run android     # needs an emulator / device + Android SDK
 ```
 
+### Windows / Git Bash
+
+`react-native run-android` shells out to `gradlew.bat` without a `.\` prefix,
+which Git Bash can't find on `PATH`. Run the Gradle task directly instead:
+
+```bash
+export ANDROID_HOME="$LOCALAPPDATA/Android/Sdk"
+cd android
+./gradlew.bat :app:installDebug -PreactNativeArchitectures=x86_64
+"$ANDROID_HOME/platform-tools/adb.exe" shell am start -n <applicationId>/.MainActivity
+```
+
+with `npx react-native start` running in another terminal.
+
 ## Layout
 
 | path | what it is |

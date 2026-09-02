@@ -15,8 +15,10 @@ const config = {
       path.resolve(projectRoot, 'node_modules'),
       path.resolve(repoRoot, 'node_modules'),
     ],
-    // Prevent duplicate React copies from the workspace root.
-    disableHierarchicalLookup: true,
+    // NOTE: hierarchical lookup stays ON. `npm install` nests some transitive
+    // deps (e.g. @react-native/virtualized-lists under react-native/), and the
+    // repo root has no react / react-native of its own, so there is no
+    // duplicate-React risk to guard against here.
   },
 };
 

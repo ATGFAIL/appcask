@@ -41,7 +41,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun haptic(type: String, promise: Promise) {
     runOnUi {
-      val view = currentActivity?.window?.decorView
+      val view = reactContext.currentActivity?.window?.decorView
       val constant = when (type) {
         "success", "light", "selection" -> HapticFeedbackConstants.KEYBOARD_TAP
         "warning", "medium" -> HapticFeedbackConstants.LONG_PRESS
@@ -56,7 +56,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   // --- share ---
   @ReactMethod
   fun share(payload: ReadableMap, promise: Promise) {
-    val activity = currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
+    val activity = reactContext.currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
     val text = listOfNotNull(
       payload.getStringOrNull("text"),
       payload.getStringOrNull("url"),
@@ -76,7 +76,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   // --- external browser ---
   @ReactMethod
   fun openExternal(url: String, promise: Promise) {
-    val activity = currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
+    val activity = reactContext.currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
     runOnUi {
       try {
         CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(activity, Uri.parse(url))
@@ -91,7 +91,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   // --- status bar ---
   @ReactMethod
   fun setStatusBar(style: String?, color: String?, promise: Promise) {
-    val activity = currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
+    val activity = reactContext.currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
     runOnUi {
       val window = activity.window
       color?.let {
@@ -185,7 +185,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
    */
   @ReactMethod
   fun startAuthSession(url: String, callbackHosts: com.facebook.react.bridge.ReadableArray, promise: Promise) {
-    val activity = currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
+    val activity = reactContext.currentActivity ?: return promise.reject("NATIVE_UNAVAILABLE", "no activity")
     pendingAuth?.reject("INTERNAL", "superseded by a new auth session")
     pendingAuth = promise
     authCallbackHosts = (0 until callbackHosts.size()).mapNotNull { callbackHosts.getString(it) }
@@ -204,7 +204,7 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   private fun runOnUi(block: () -> Unit) {
-    val activity = currentActivity
+    val activity = reactContext.currentActivity
     if (activity != null) activity.runOnUiThread(block) else block()
   }
 
