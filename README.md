@@ -7,6 +7,9 @@
 The native integration [Median](https://median.co) (formerly GoNative) puts behind a paywall,
 open-source and MIT-licensed.
 
+[![CI](https://github.com/ATGFAIL/appcask/actions/workflows/ci.yml/badge.svg)](https://github.com/ATGFAIL/appcask/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 [Quick start](#quick-start) · [Why appcask](#why-appcask) · [Config reference](./docs) · [Bridge protocol](./BRIDGE_PROTOCOL.md)
 
 </div>
