@@ -82,6 +82,7 @@ export async function materializeAndroid(
   await patchPackageJson(outDir, config);
   await writeFile(join(outDir, 'metro.config.js'), STANDALONE_METRO, 'utf8');
   await patchAndroid(outDir, config, warnings);
+  await patchIos(outDir, config);
   const wroteIcons = await writeIcons(outDir, configRoot, config, warnings);
 
   return { outDir, wroteIcons, warnings };
@@ -193,6 +194,43 @@ async function patchAndroid(
       await pruneEmptyDirs(javaRoot, oldDir);
     }
   }
+}
+
+/**
+ * The safe subset of iOS patching: bundle id, display name, version, and the
+ * usage strings. Adding the Swift bridge files to the Xcode target and setting
+ * the bridging header still needs Xcode — see docs/ios.md.
+ */
+async function patchIos(outDir: string, config: ResolvedAppcaskConfig): Promise<void> {
+  const iosDir = join(outDir, 'ios');
+  if (!existsSync(iosDir)) return;
+
+  await edit(join(iosDir, 'AppcaskShell.xcodeproj', 'project.pbxproj'), (c) =>
+    c
+      .replace(
+        /PRODUCT_BUNDLE_IDENTIFIER = "[^"]*";/g,
+        `PRODUCT_BUNDLE_IDENTIFIER = "${config.identity.packageName}";`,
+      )
+      .replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${config.identity.version};`),
+  );
+
+  await edit(join(iosDir, 'AppcaskShell', 'Info.plist'), (plist) => {
+    let out = plist.replace(
+      /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/,
+      `$1${config.identity.appName}$2`,
+    );
+    const usage = `\t<key>NSCameraUsageDescription</key>
+\t<string>Take a photo to upload.</string>
+\t<key>NSPhotoLibraryUsageDescription</key>
+\t<string>Choose a photo to upload.</string>
+\t<key>NSPhotoLibraryAddUsageDescription</key>
+\t<string>Save downloaded files to your library.</string>
+`;
+    if (!out.includes('NSCameraUsageDescription')) {
+      out = out.replace('</dict>\n</plist>', `${usage}</dict>\n</plist>`);
+    }
+    return out;
+  });
 }
 
 async function writeIcons(

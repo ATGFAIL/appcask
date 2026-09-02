@@ -94,8 +94,10 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 
 | Package | What it is |
 |---|---|
-| [`appcask`](./packages/cli) | the CLI — `init`, `doctor`, `assets`, `android`, `build`, `run` |
-| [`@appcask/config`](./packages/config) | the config JSON Schema, validator, and generated types |
+| [`appcask`](./packages/cli) | the CLI — `init`, `doctor`, `assets`, `android`, `build`, `run`, `ios` |
+| [`@appcask/config`](./packages/config) | the config schema, validator, and the pure `capabilities` / `updates` logic |
+| [`@appcask/bridge`](./packages/bridge) | the `window.appcask` ⇄ native wire protocol |
+| [`@appcask/router`](./packages/router) | pure URL-routing decisions for the shell |
 | [`@appcask/web`](./packages/web) | typed `window.appcask` client for your website (no-ops in a normal browser) |
 | [`template/`](./template) | the React Native shell the CLI materializes and builds |
 
@@ -114,7 +116,7 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
 - [x] Native bottom-tab navigation (`navigation.mode: "tabs"`)
 - [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
-- [ ] iOS shell (`ASWebAuthenticationSession`)
+- [~] iOS shell — Swift bridge written, config/materialize done; needs finishing in Xcode ([docs/ios.md](./docs/ios.md))
 - [ ] Push (FCM + APNs) → tap opens a URL
 - [ ] Drawer navigation, biometric app-lock, in-app review prompt
 

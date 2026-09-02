@@ -2,14 +2,14 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { parseArgs, flagBool, flagStr } from './args.js';
-import { CliError, bold, cyan, dim, line, red } from './ui.js';
+import { CliError, bold, cyan, line, red } from './ui.js';
 import { initCommand } from './commands/init.js';
 import { doctorCommand } from './commands/doctor.js';
 import { assetsCommand } from './commands/assets.js';
 import { androidCommand } from './commands/android.js';
 import { buildAndroidCommand } from './commands/build.js';
 import { runCommand } from './commands/run.js';
-import { stubCommand } from './commands/stub.js';
+import { iosCommand } from './commands/ios.js';
 
 const BOOLEAN_FLAGS = [
   'force',
@@ -40,7 +40,7 @@ ${bold('Commands')}
   ${cyan('android')} [--out dir]  materialize the Android project from the config
   ${cyan('build')} android        materialize + build a signed APK / AAB
   ${cyan('run')}                  build a debug APK, install it on a device, start Metro
-  ${cyan('ios')}                  materialize the iOS project                   ${dim('(coming soon)')}
+  ${cyan('ios')}                  materialize the iOS project (finish in Xcode — see docs/ios.md)
 
 ${bold('Options')}
   --yes            init: accept defaults, no prompts
@@ -135,7 +135,7 @@ async function main(argv: string[]): Promise<number> {
       return 0;
 
     case 'ios':
-      await stubCommand(command);
+      await iosCommand({ out: flagStr(flags, 'out'), force: flagBool(flags, 'force') });
       return 0;
 
     default:
