@@ -82,7 +82,19 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
 
   // --- bridge capabilities ---
   if (config.bridge.grants === null) {
-    T.info('bridge: every window.appcask method is allowed on every allowed origin (no bridge.grants)');
+    const sensitive =
+      config.internalHosts.length > 1 ||
+      config.features.deepLinks != null ||
+      /pay|checkout|account|billing/i.test(JSON.stringify(config.features.separateDocumentPatterns));
+    if (sensitive) {
+      T.warn(
+        'no bridge.grants — every page (including third-party / injected content) can call every ' +
+          'window.appcask method. For an app with logins or payments, scope secureStore / clipboard to ' +
+          'the paths that need them (see docs/config.md).',
+      );
+    } else {
+      T.info('bridge: every window.appcask method is allowed on every allowed origin (no bridge.grants)');
+    }
   } else if (config.bridge.grants.length === 0) {
     T.warn('bridge.grants is empty — every window.appcask call will be refused with PERMISSION_DENIED');
   } else {
