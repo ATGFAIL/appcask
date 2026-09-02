@@ -99,6 +99,7 @@ describe('resolveConfig', () => {
   it('applies feature defaults', () => {
     const resolved = resolveConfig(minimal);
     expect(resolved.features).toMatchObject({
+      userAgent: 'chrome',
       pullToRefresh: false,
       offlinePage: true,
       fileAccess: true,
@@ -106,6 +107,11 @@ describe('resolveConfig', () => {
       externalBrowserAuth: [],
       separateDocumentPatterns: [],
     });
+  });
+
+  it('accepts a custom userAgent string', () => {
+    const r = validateConfig({ ...minimal, features: { userAgent: 'MyCustom/1.0 UA string' } });
+    expect(r.valid).toBe(true);
   });
 
   it('defaults statusBar style to dark and safeArea to inset', () => {

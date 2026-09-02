@@ -12,6 +12,7 @@ import {
   patchAppJson,
   patchBuildGradle,
   patchKotlinPackage,
+  patchManifestDeepLinkHosts,
   patchManifestPermissions,
   patchManifestShareTarget,
   patchStringsXml,
@@ -171,12 +172,15 @@ async function patchAndroid(
   );
 
   await edit(join(androidApp, 'src', 'main', 'AndroidManifest.xml'), (c) =>
-    patchManifestShareTarget(
-      patchManifestPermissions(c, {
-        fileAccess: config.features.fileAccess,
-        downloads: config.features.downloads,
-      }),
-      config.features.shareTarget != null,
+    patchManifestDeepLinkHosts(
+      patchManifestShareTarget(
+        patchManifestPermissions(c, {
+          fileAccess: config.features.fileAccess,
+          downloads: config.features.downloads,
+        }),
+        config.features.shareTarget != null,
+      ),
+      config.internalHosts.filter((h) => h !== deeplinkHost(config)),
     ),
   );
 

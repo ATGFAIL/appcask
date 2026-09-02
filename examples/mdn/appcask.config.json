@@ -18,7 +18,6 @@
     "offlinePage": true,
     "fileAccess": true,
     "downloads": true,
-    "externalBrowserAuth": ["github.com", "accounts.google.com"],
     "separateDocumentPatterns": ["/en-US/plus/*"],
     "deepLinks": {
       "host": "developer.mozilla.org",

@@ -49,10 +49,20 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
   } else {
     T.warn(`startUrl host "${startHost}" is not in internalHosts — the first page would open in an external browser`);
   }
+  T.info(
+    `User-Agent: ${config.features.userAgent}` +
+      (config.features.userAgent === 'chrome' ? ' — embedded Google / Apple sign-in works' : ''),
+  );
   if (config.features.externalBrowserAuth.length > 0) {
-    T.info(`native auth browser for: ${config.features.externalBrowserAuth.join(', ')}`);
-  } else {
-    T.warn('no externalBrowserAuth hosts — Google/Apple sign-in inside the WebView will be blocked with disallowed_useragent');
+    T.info(`OS auth browser for: ${config.features.externalBrowserAuth.join(', ')}`);
+    if (!config.features.deepLinks) {
+      T.warn(
+        'externalBrowserAuth is set but there is no deepLinks host — the OS browser has no verified ' +
+          'App Link to return through, so sign-in ends up in the browser, not the app. Either host ' +
+          'assetlinks.json + set features.deepLinks, or drop externalBrowserAuth (the default clean ' +
+          'User-Agent handles Google / Apple).',
+      );
+    }
   }
   if (config.features.separateDocumentPatterns.length > 0) {
     T.info(`native loadUrl for paths: ${config.features.separateDocumentPatterns.join(', ')}`);

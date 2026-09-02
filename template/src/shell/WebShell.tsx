@@ -38,7 +38,22 @@ import {
   parseHealthMessage,
 } from './updates';
 
-const UA_TAG = `appcask/${config.identity.version}`;
+/**
+ * A clean mobile-Chrome User-Agent — no `; wv)` marker — so Google / Apple
+ * sign-in works inside the WebView instead of being blocked with
+ * `disallowed_useragent`. `appcask/<version>` is appended so the site can still
+ * tell it's in the app (also `window.__APPCASK__`).
+ */
+const CHROME_UA =
+  'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36';
+
+function resolveUserAgent(): { userAgent?: string; applicationNameForUserAgent?: string } {
+  const setting = config.features.userAgent;
+  if (setting === 'native') return { applicationNameForUserAgent: `appcask/${config.identity.version}` };
+  if (setting === 'chrome' || !setting) return { userAgent: `${CHROME_UA} appcask/${config.identity.version}` };
+  return { userAgent: setting };
+}
+const UA_PROPS = resolveUserAgent();
 const HEALTH_POLICY = {
   maxFailures: config.features.updates?.healthCheck.maxFailures ?? 2,
   onUnhealthy: config.features.updates?.onUnhealthy ?? 'previous',
@@ -352,7 +367,7 @@ export function WebShell(): React.JSX.Element {
         ref={webRef}
         style={styles.fill}
         source={{ uri: sourceUrl }}
-        applicationNameForUserAgent={UA_TAG}
+        {...UA_PROPS}
         originWhitelist={['https://*', 'http://*']}
         injectedJavaScriptBeforeContentLoaded={beforeContentScript()}
         onMessage={onMessage}

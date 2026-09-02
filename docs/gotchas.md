@@ -17,14 +17,25 @@ reject the whole user-agent class. A WebView also has its own empty cookie jar �
 the user who is signed into Google in Chrome is a stranger here, and passkeys /
 password managers don't autofill.
 
-**Solution.** appcask routes any host in `features.externalBrowserAuth` to
-**Custom Tabs** (Android) / **`ASWebAuthenticationSession`** (iOS) — a real
-browser sheet with the real cookie jar, presented over the app. When the
-provider redirects back to a URL on one of your `internalHosts`, appcask
-intercepts it and resumes the WebView with the session established.
+**Solution (the default).** appcask gives the WebView a **clean mobile-Chrome
+User-Agent** — no `; wv)` marker — so `accounts.google.com` /
+`appleid.apple.com` load *inside* the WebView, in its own cookie jar, and the
+whole flow (including the redirect back to your site) just works. This is
+`features.userAgent: "chrome"`, on by default.
 
-For the redirect to reach the app, that callback path must be a **verified App
-Link** (`/.well-known/assetlinks.json`). `appcask doctor` checks it.
+**When you still need the OS browser.** A few providers block embedded auth by
+more than the User-Agent. For those, add the host to
+`features.externalBrowserAuth` — appcask opens it in **Custom Tabs** /
+**`ASWebAuthenticationSession`**. But now the redirect has to get *back* to the
+app: the callback host must be a **verified App Link**
+(`/.well-known/assetlinks.json` with your package + signing SHA-256, and
+`features.deepLinks` set). Without that, sign-in finishes in the browser, not
+the app. `appcask doctor` warns when `externalBrowserAuth` is set without it.
+
+> The cookie jars are separate on Android, so `externalBrowserAuth` only works
+> if your callback establishes the session via the redirect URL (a token the
+> app can forward), not only an `httpOnly` cookie. If you don't control that,
+> stay on the default clean User-Agent.
 
 ---
 

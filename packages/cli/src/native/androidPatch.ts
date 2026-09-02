@@ -42,6 +42,23 @@ export function patchStringsXml(
     );
 }
 
+/**
+ * Add every internal host to the App Links intent-filter so that, once the site
+ * hosts `/.well-known/assetlinks.json`, the OS browser can hand an auth redirect
+ * (or any link) back to the app.
+ */
+export function patchManifestDeepLinkHosts(content: string, hosts: readonly string[]): string {
+  const extra = hosts
+    .filter((h) => !h.startsWith('.'))
+    .map((h) => `            <data android:scheme="https" android:host="${h}" />`)
+    .join('\n');
+  if (!extra) return content;
+  return content.replace(
+    /(\n\s*<data android:scheme="https" android:host="@string\/appcask_deeplink_host" \/>)/,
+    `$1\n${extra}`,
+  );
+}
+
 const SHARE_INTENT_FILTER = `        <intent-filter>
             <action android:name="android.intent.action.SEND" />
             <category android:name="android.intent.category.DEFAULT" />

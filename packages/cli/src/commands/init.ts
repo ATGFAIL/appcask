@@ -48,7 +48,9 @@ export async function initCommand(flags: InitFlags): Promise<void> {
     features: {
       pullToRefresh: true,
       offlinePage: true,
-      externalBrowserAuth: ['accounts.google.com', 'appleid.apple.com'],
+      // Embedded Google / Apple sign-in works with the default clean User-Agent.
+      // Only add externalBrowserAuth (+ host assetlinks.json) if a provider still
+      // refuses — see docs/gotchas.md.
     },
   };
 

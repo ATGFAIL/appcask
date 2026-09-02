@@ -8,6 +8,7 @@ import {
   patchKotlinPackage,
   patchManifestPermissions,
   patchManifestShareTarget,
+  patchManifestDeepLinkHosts,
   colorsXml,
   deeplinkHost,
 } from './androidPatch.js';
@@ -149,6 +150,21 @@ describe('patchManifestShareTarget', () => {
     const out = patchManifestShareTarget(withFilter, false);
     expect(out).not.toContain('android.intent.action.SEND');
     expect(out).toContain('android.intent.action.MAIN');
+  });
+});
+
+describe('patchManifestDeepLinkHosts', () => {
+  const manifest = `        <intent-filter android:autoVerify="true">
+            <data android:scheme="https" android:host="@string/appcask_deeplink_host" />
+        </intent-filter>`;
+  it('adds a <data> line per host, skipping dot-prefixed', () => {
+    const out = patchManifestDeepLinkHosts(manifest, ['acme.example', 'www.acme.example', '.cdn.acme.example']);
+    expect(out).toContain('android:host="acme.example"');
+    expect(out).toContain('android:host="www.acme.example"');
+    expect(out).not.toContain('android:host=".cdn.acme.example"');
+  });
+  it('no-ops with no hosts', () => {
+    expect(patchManifestDeepLinkHosts(manifest, [])).toBe(manifest);
   });
 });
 

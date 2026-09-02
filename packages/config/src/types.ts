@@ -112,6 +112,12 @@ export interface UpdateManifest {
 }
 
 export interface AppcaskFeatures {
+  /**
+   * WebView User-Agent. `chrome` (default) uses a clean mobile-Chrome string
+   * (no `; wv` marker) so embedded Google / Apple sign-in isn't blocked.
+   * `native` keeps the platform default. Or pass your own string.
+   */
+  userAgent?: 'chrome' | 'native' | string;
   pullToRefresh?: boolean;
   /** Show a built-in offline screen when a load fails with no connection. Default `true`. */
   offlinePage?: boolean;
@@ -209,6 +215,7 @@ export interface ResolvedAppcaskConfig {
   };
   navigation: { mode: 'single' | 'tabs' | 'drawer'; tabs: NavigationTab[] };
   features: {
+    userAgent: 'chrome' | 'native' | string;
     pullToRefresh: boolean;
     offlinePage: boolean;
     fileAccess: boolean;

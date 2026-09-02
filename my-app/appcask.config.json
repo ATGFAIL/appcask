@@ -17,7 +17,6 @@
 
   "features": {
     "pullToRefresh": true,
-    "offlinePage": true,
-    "externalBrowserAuth": ["accounts.google.com", "appleid.apple.com"]
+    "offlinePage": true
   }
 }

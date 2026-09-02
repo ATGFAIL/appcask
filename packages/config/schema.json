@@ -107,6 +107,14 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "userAgent": {
+          "description": "The WebView User-Agent. 'chrome' (default): a clean mobile-Chrome string with no WebView marker, so embedded Google / Apple sign-in isn't blocked with disallowed_useragent. 'native': the platform default (contains '; wv'). Or pass your own string. `appcask/<version>` is appended unless you pass a full string.",
+          "oneOf": [
+            { "enum": ["chrome", "native"] },
+            { "type": "string", "minLength": 10 }
+          ],
+          "default": "chrome"
+        },
         "pullToRefresh": { "type": "boolean", "default": false },
         "offlinePage": { "type": "boolean", "default": true, "description": "Show a built-in offline screen when a load fails with no connection." },
         "fileAccess": { "type": "boolean", "default": true, "description": "Wire up <input type=file>, camera capture, and the native file picker." },

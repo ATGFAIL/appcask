@@ -47,6 +47,7 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       tabs: config.navigation?.tabs ?? [],
     },
     features: {
+      userAgent: f.userAgent ?? 'chrome',
       pullToRefresh: f.pullToRefresh ?? false,
       offlinePage: f.offlinePage ?? true,
       fileAccess: f.fileAccess ?? true,
