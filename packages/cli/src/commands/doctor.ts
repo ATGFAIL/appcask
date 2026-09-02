@@ -51,6 +51,23 @@ export async function doctorCommand(flags: DoctorFlags): Promise<void> {
     T.info(`native loadUrl for paths: ${config.features.separateDocumentPatterns.join(', ')}`);
   }
 
+  // --- bridge capabilities ---
+  if (config.bridge.grants === null) {
+    T.info('bridge: every window.appcask method is allowed on every allowed origin (no bridge.grants)');
+  } else if (config.bridge.grants.length === 0) {
+    T.warn('bridge.grants is empty — every window.appcask call will be refused with PERMISSION_DENIED');
+  } else {
+    T.ok(`bridge: default-deny, ${config.bridge.grants.length} grant(s)`);
+    for (const g of config.bridge.grants) {
+      const scope = g.match
+        ? [g.match.host, g.match.pathPrefix && `path ${g.match.pathPrefix}*`, g.match.pathGlob && `path ${g.match.pathGlob}`]
+            .filter(Boolean)
+            .join(' ')
+        : 'everywhere';
+      T.info(`  ${scope}: ${g.capabilities.join(', ')}`);
+    }
+  }
+
   // --- assets ---
   heading('Assets');
   await checkImage(T, root, config.theme.splash?.logo, { label: 'splash logo', min: 128, square: true });

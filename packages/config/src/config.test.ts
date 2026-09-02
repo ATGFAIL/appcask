@@ -108,10 +108,10 @@ describe('resolveConfig', () => {
     });
   });
 
-  it('defaults statusBar style to dark and safeArea to css-vars', () => {
+  it('defaults statusBar style to dark and safeArea to inset', () => {
     const resolved = resolveConfig(minimal);
     expect(resolved.theme.statusBar.style).toBe('dark');
-    expect(resolved.theme.safeArea).toBe('css-vars');
+    expect(resolved.theme.safeArea).toBe('inset');
   });
 
   it('fills deepLinks.pathPatterns default', () => {

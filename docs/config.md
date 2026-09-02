@@ -29,8 +29,13 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
       "background": "#ffffff",         // REQUIRED inside "splash"
       "logo": "assets/splash-logo.png" // optional centred logo
     },
-    "safeArea": "css-vars"             // "css-vars" (default) injects --appcask-{top,right,bottom,left}-inset
-                                       // so your CSS can pad around notches. "none" to opt out.
+    "safeArea": "inset"                // how the app handles the notch / status bar / home indicator:
+                                       //  "inset"    (default) — the WebView is padded to the safe area
+                                       //             and the strip is filled with statusBar.color.
+                                       //             Any site looks right with no changes.
+                                       //  "css-vars" — WebView goes edge-to-edge; --appcask-{top,right,
+                                       //             bottom,left}-inset are injected for your CSS.
+                                       //  "none"     — edge-to-edge, no help.
   },
 
   "navigation": { "mode": "single" },  // "single" = one WebView. "tabs" / "drawer" add native
@@ -61,11 +66,40 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
   },
 
   "bridge": {
-    "allowedOrigins": ["https://acme.example"]   // origins allowed to call window.appcask.
+    "allowedOrigins": ["https://acme.example"],  // origins allowed to call window.appcask at all.
                                                  // Defaults to https://<each internalHost>.
+
+    "grants": [                                  // OPTIONAL. Omit -> every method allowed everywhere.
+      { "capabilities": ["haptic", "share", "navigate", "openExternal", "setStatusBar", "getInfo"] },
+      { "match": { "pathPrefix": "/account" }, "capabilities": ["secureStore.*"] },
+      { "match": { "pathGlob": "/support/**" }, "capabilities": ["clipboard.read"] }
+    ]
   }
 }
 ```
+
+## `bridge.grants` — scope the native bridge
+
+The bridge is an API surface exposed to whatever HTML is in the WebView —
+including third-party pages and injected content. `bridge.grants` limits which
+capabilities each page can reach.
+
+- **Omit `grants`** → every `window.appcask` method works on every allowed
+  origin (the simple default).
+- **Add `grants`** → the bridge is **default-deny**: a call is refused with
+  `PERMISSION_DENIED` unless a grant whose `match` covers the current page lists
+  that capability.
+
+A grant's `capabilities` are method names, a namespace wildcard
+(`secureStore.*`, `clipboard.*`), or `*`. A grant with no `match` applies to
+every allowed origin; otherwise `match` narrows by `host` (exact, or `.acme.com`
+for sub-domains), `pathPrefix`, and/or `pathGlob`.
+
+Example above: session tokens (`secureStore`) are reachable only under
+`/account`; clipboard *reading* only in the support flow; everything else is the
+harmless always-on set.
+
+`appcask doctor` prints the resolved grant table.
 
 ## Glob syntax (`separateDocumentPatterns`, `deepLinks.pathPatterns`)
 

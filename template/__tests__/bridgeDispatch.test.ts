@@ -28,6 +28,7 @@ const ctx: DispatchContext = {
   platform: 'android',
   online: true,
   insets: { top: 24, right: 0, bottom: 0, left: 0 },
+  currentUrl: 'https://example.com/',
   requestNavigate: jest.fn(),
 };
 

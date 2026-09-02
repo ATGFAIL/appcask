@@ -15,11 +15,9 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaProvider>
-      <StatusBar
-        barStyle={barStyle}
-        backgroundColor={config.theme.statusBar.color ?? undefined}
-        translucent={false}
-      />
+      {/* translucent so the WebView / SafeAreaView controls the status-bar strip
+          colour consistently across Android versions (15+ forces edge-to-edge). */}
+      <StatusBar barStyle={barStyle} translucent backgroundColor="transparent" />
       <WebShell />
     </SafeAreaProvider>
   );

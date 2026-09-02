@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Linking, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import WebViewBase from 'react-native-webview';
 import type { WebViewProps } from 'react-native-webview/lib/WebView';
 import type {
@@ -17,6 +17,17 @@ import { beforeContentScript, contextScript, deliverScript } from './injection';
 import { OfflineScreen } from './OfflineScreen';
 
 const UA_TAG = `appcask/${config.identity.version}`;
+
+/**
+ * `inset` (the default): the WebView sits inside the safe area, so any website
+ * looks right with no changes — its header can't hide under the status bar, its
+ * fixed footer can't hide under the home indicator. `css-vars` / `none` let the
+ * WebView go edge-to-edge (the site handles insets via the injected variables).
+ */
+const SAFE_AREA_MODE = config.theme.safeArea;
+/** The colour behind the inset strips (status bar + home indicator). */
+const INSET_BG =
+  config.theme.statusBar.color ?? config.theme.splash?.background ?? '#000000';
 
 /** The imperative handle react-native-webview forwards through its ref. */
 interface WebViewHandle {
@@ -61,12 +72,18 @@ export function WebShell(): React.JSX.Element {
     () => ({
       platform: 'android',
       online: !offline,
-      insets: {
-        top: Math.round(insets.top),
-        right: Math.round(insets.right),
-        bottom: Math.round(insets.bottom),
-        left: Math.round(insets.left),
-      },
+      // In `inset` mode the WebView is already padded, so from the page's point
+      // of view there is no unsafe area — report zeros.
+      insets:
+        SAFE_AREA_MODE === 'inset'
+          ? { top: 0, right: 0, bottom: 0, left: 0 }
+          : {
+              top: Math.round(insets.top),
+              right: Math.round(insets.right),
+              bottom: Math.round(insets.bottom),
+              left: Math.round(insets.left),
+            },
+      currentUrl: config.startUrl,
       requestNavigate: loadNative,
     }),
     [offline, insets, loadNative],
@@ -129,7 +146,11 @@ export function WebShell(): React.JSX.Element {
 
   const onMessage = useCallback(
     async (event: WebViewMessageEvent) => {
-      const response = await handleBridgeMessage(event.nativeEvent.data, dispatchContext);
+      // currentUrl must be the live value — capability grants are per-page.
+      const response = await handleBridgeMessage(event.nativeEvent.data, {
+        ...dispatchContext,
+        currentUrl: currentUrlRef.current,
+      });
       if (response) webRef.current?.injectJavaScript(deliverScript(response));
     },
     [dispatchContext],
@@ -149,8 +170,12 @@ export function WebShell(): React.JSX.Element {
     return <OfflineScreen onRetry={retry} />;
   }
 
+  const Frame = SAFE_AREA_MODE === 'inset' ? SafeAreaView : View;
+  const frameStyle =
+    SAFE_AREA_MODE === 'inset' ? [styles.fill, { backgroundColor: INSET_BG }] : styles.fill;
+
   return (
-    <View style={styles.fill}>
+    <Frame style={frameStyle}>
       <WebView
         key={reloadKey}
         ref={webRef}
@@ -174,7 +199,7 @@ export function WebShell(): React.JSX.Element {
           if (isNetworkError(e.nativeEvent.code)) setOffline(true);
         }}
       />
-    </View>
+    </Frame>
   );
 }
 

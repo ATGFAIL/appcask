@@ -11,7 +11,7 @@ import type { AppcaskConfig, ResolvedAppcaskConfig } from './types.js';
  *  - `internalHosts`         -> `[host(startUrl)]`
  *  - `bridge.allowedOrigins` -> `https://<host>` for each internal host
  *  - `theme.statusBar.style` -> `dark`
- *  - `theme.safeArea`        -> `css-vars`
+ *  - `theme.safeArea`        -> `inset`
  *  - `navigation.mode`       -> `single`
  */
 export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
@@ -39,7 +39,7 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       },
       navigationBarColor: config.theme?.navigationBarColor,
       splash: config.theme?.splash,
-      safeArea: config.theme?.safeArea ?? 'css-vars',
+      safeArea: config.theme?.safeArea ?? 'inset',
     },
     navigation: {
       mode: config.navigation?.mode ?? 'single',
@@ -61,6 +61,9 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
         ? { provider: f.push.provider, onTapUrlParam: f.push.onTapUrlParam ?? 'url' }
         : undefined,
     },
-    bridge: { allowedOrigins },
+    bridge: {
+      allowedOrigins,
+      grants: config.bridge?.grants ? config.bridge.grants.map((g) => ({ ...g })) : null,
+    },
   };
 }

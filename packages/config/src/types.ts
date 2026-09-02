@@ -39,7 +39,7 @@ export interface AppcaskTheme {
    * `css-vars` injects `--appcask-{top,right,bottom,left}-inset` so the site can
    * pad around notches. Default `css-vars`.
    */
-  safeArea?: 'css-vars' | 'none';
+  safeArea?: 'inset' | 'css-vars' | 'none';
 }
 
 export interface NavigationTab {
@@ -97,12 +97,36 @@ export interface AppcaskFeatures {
   push?: PushConfig;
 }
 
+export interface CapabilityMatch {
+  /** Exact host, or a leading-dot host (`.acme.com`) to also match sub-domains. */
+  host?: string;
+  /** URL path must start with this. */
+  pathPrefix?: string;
+  /** URL path must match this glob (`*` = one segment, `**` = any). */
+  pathGlob?: string;
+}
+
+export interface CapabilityGrant {
+  /** Which pages this grant applies to. Omit to apply to every allowed origin. */
+  match?: CapabilityMatch;
+  /**
+   * Method names, a namespace wildcard (`secureStore.*`, `clipboard.*`), or `*`
+   * for all.
+   */
+  capabilities: string[];
+}
+
 export interface BridgeConfig {
   /**
-   * Origins allowed to call `window.appcask`. Defaults to
+   * Origins allowed to call `window.appcask` at all. Defaults to
    * `https://<each internalHost>`.
    */
   allowedOrigins?: string[];
+  /**
+   * Per-scope capability grants. Omit and every method is allowed on every
+   * allowed origin. Add it and the bridge is **default-deny**.
+   */
+  grants?: CapabilityGrant[];
 }
 
 export interface AppcaskConfig {
@@ -133,7 +157,7 @@ export interface ResolvedAppcaskConfig {
     statusBar: { style: 'light' | 'dark'; color?: Color };
     navigationBarColor?: Color;
     splash?: SplashTheme;
-    safeArea: 'css-vars' | 'none';
+    safeArea: 'inset' | 'css-vars' | 'none';
   };
   navigation: { mode: 'single' | 'tabs' | 'drawer'; tabs: NavigationTab[] };
   features: {
@@ -148,5 +172,12 @@ export interface ResolvedAppcaskConfig {
     deepLinks?: Required<DeepLinkConfig>;
     push?: Required<PushConfig>;
   };
-  bridge: { allowedOrigins: string[] };
+  bridge: {
+    allowedOrigins: string[];
+    /**
+     * `null` = every method allowed (no policy). An array (possibly empty) means
+     * default-deny: a call is allowed only if a matching grant lists it.
+     */
+    grants: CapabilityGrant[] | null;
+  };
 }

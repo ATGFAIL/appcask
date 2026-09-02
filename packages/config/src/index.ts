@@ -6,6 +6,8 @@ export type {
   AppcaskNavigation,
   AppcaskFeatures,
   BridgeConfig,
+  CapabilityGrant,
+  CapabilityMatch,
   DeepLinkConfig,
   PushConfig,
   NavigationTab,
@@ -13,6 +15,12 @@ export type {
   SplashTheme,
   Color,
 } from './types.js';
+
+export {
+  checkCapability,
+  grantedCapabilities,
+  type CapabilityDecision,
+} from './capabilities.js';
 
 export {
   validateConfig,

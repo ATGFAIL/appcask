@@ -9,6 +9,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./defaults": "./dist/defaults.js",
+    "./capabilities": "./dist/capabilities.js",
     "./schema.json": "./schema.json"
   },
   "files": ["dist", "schema.json"],

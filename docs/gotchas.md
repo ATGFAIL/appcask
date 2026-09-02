@@ -109,7 +109,24 @@ they verify your package and are served correctly.
 
 ---
 
-## 7. `about:blank` takes over the app
+## 7. The web header hides under the status bar
+
+**Symptom.** In the app, the site's sticky header sits *behind* the phone's
+status bar — the clock and battery icons overlap the logo. A fixed footer or a
+floating button collides with the home indicator.
+
+**Why.** A full-screen `WebView` has no browser chrome to push the page down,
+and Android 15+ forces every app edge-to-edge. `env(safe-area-inset-*)` only
+covers the iOS notch, not the Android status bar, and a site that assumed it was
+in a browser never accounted for either.
+
+**Solution.** `theme.safeArea: "inset"` (the default) pads the WebView to the
+safe area and fills the strip with `statusBar.color`, so **any** site looks
+right with no changes. Sites that want to paint edge-to-edge set
+`"css-vars"` and use the injected `--appcask-{top,right,bottom,left}-inset`
+variables.
+
+## 8. `about:blank` takes over the app
 
 **Symptom.** A `target="_blank"` link or a stale back-stack entry replaces the
 whole app with an unrecoverable blank surface.

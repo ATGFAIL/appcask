@@ -72,6 +72,8 @@ and that gap is exactly where the hard, under-documented problems live:
 | **`<input type="file">` does nothing** | Android WebView has no default file chooser; downloads are swallowed | Native file picker + camera capture + `DownloadManager` wired in |
 | **Session lost on restart** | Some vendor ROMs expose Keychain but fail the final encrypted write | Verify-after-write + app-private fallback so a login is never silently discarded |
 | **Deep links / App Links** | `assetlinks.json` / `apple-app-site-association` misconfigured = links open the browser, not the app | `appcask doctor` checks reachability and format; the CLI writes the intent filters |
+| **The web header hides under the status bar** | a full-screen WebView has no chrome to push the page down, and Android 15+ forces edge-to-edge | `theme.safeArea: "inset"` (default) pads the WebView to the safe area — any site looks right unchanged |
+| **The bridge is an open API to whatever's in the WebView** | third-party pages and injected scripts can call `window.appcask` too | `bridge.grants` scopes each capability to a host / path — session storage only under `/account`, etc. |
 
 See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 
@@ -102,7 +104,11 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] URL router — internal / separate-doc / auth / external / system (`@appcask/router`)
 - [x] `@appcask/web` client with per-call timeouts and browser fallbacks
 - [x] Android shell: WebView, router, `window.appcask` bridge, OAuth handoff, offline, back handler
+- [x] Safe-area handling by default (`theme.safeArea: "inset"`)
+- [x] Per-host/path capability scoping for the bridge (`bridge.grants`)
 - [x] CLI: `init`, `doctor`, `assets`, `android` (materialize + rename + icons), `build android`
+- [ ] `appcask doctor --production` — real OAuth / deep-link / signing / store-risk checks
+- [ ] Safe remote updates: version pinning, health check, auto-rollback
 - [ ] Docs site + demo APK in Releases
 - [ ] iOS shell (`ASWebAuthenticationSession`)
 - [ ] Downloads + `<input type=file>` camera capture

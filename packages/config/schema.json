@@ -66,9 +66,9 @@
           }
         },
         "safeArea": {
-          "enum": ["css-vars", "none"],
-          "default": "css-vars",
-          "description": "css-vars injects --appcask-{top,right,bottom,left}-inset so the site can pad around notches."
+          "enum": ["inset", "css-vars", "none"],
+          "default": "inset",
+          "description": "How the shell handles notches / status bar / home indicator. 'inset' (default): the WebView is padded to the safe area, filled with statusBar.color — any site looks right with no changes. 'css-vars': the WebView goes edge-to-edge and --appcask-{top,right,bottom,left}-inset are injected for the site to use. 'none': edge-to-edge, no help."
         }
       }
     },
@@ -155,9 +155,44 @@
       "properties": {
         "allowedOrigins": {
           "type": "array",
-          "description": "Origins allowed to call window.appcask. Defaults to https://<each internalHost>.",
+          "description": "Origins allowed to call window.appcask at all. Defaults to https://<each internalHost>.",
           "items": { "type": "string", "format": "uri" },
           "uniqueItems": true
+        },
+        "grants": {
+          "type": "array",
+          "description": "Per-scope capability grants. OMIT this and every window.appcask method is allowed on every allowed origin. ADD it and the bridge is default-deny: a method call is refused unless a matching grant lists that capability (PERMISSION_DENIED).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["capabilities"],
+            "properties": {
+              "match": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Which pages this grant applies to. Omit to apply to every allowed origin.",
+                "properties": {
+                  "host": {
+                    "type": "string",
+                    "pattern": "^\\.?[a-z0-9.-]+$",
+                    "description": "Exact host, or a leading-dot host (.acme.com) to also match sub-domains."
+                  },
+                  "pathPrefix": { "type": "string", "description": "URL path must start with this." },
+                  "pathGlob": { "type": "string", "description": "URL path must match this glob (* = one segment, ** = any)." }
+                }
+              },
+              "capabilities": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "description": "Method names, a namespace wildcard (secureStore.*, clipboard.*), or * for all.",
+                "items": {
+                  "type": "string",
+                  "pattern": "^(\\*|[a-zA-Z]+(\\.[a-zA-Z]+|\\.\\*)?)$"
+                }
+              }
+            }
+          }
         }
       }
     }

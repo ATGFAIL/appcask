@@ -10,6 +10,7 @@ import {
   type Params,
   type RequestMessage,
 } from '@appcask/bridge';
+import { checkCapability } from '@appcask/config/capabilities';
 import { native } from './native';
 import { config } from '../config';
 import { SHELL_VERSION } from './version';
@@ -20,6 +21,8 @@ export interface DispatchContext {
   platform: 'android' | 'ios';
   online: boolean;
   insets: { top: number; right: number; bottom: number; left: number };
+  /** The URL of the page making the call — checked against `bridge.grants`. */
+  currentUrl: string;
   /** Ask the shell to load a URL natively (the `navigate` method). */
   requestNavigate(url: string): void;
 }
@@ -35,6 +38,12 @@ export async function handleBridgeMessage(
 ): Promise<string | null> {
   const request = decodeRequest(raw);
   if (!request) return null;
+
+  const gate = checkCapability(config.bridge.grants, ctx.currentUrl, request.method);
+  if (!gate.allowed) {
+    return encodeError(request.id, 'PERMISSION_DENIED', gate.reason ?? 'capability not granted');
+  }
+
   try {
     const result = await dispatch(request, ctx);
     return encodeOk(request.id, result);
