@@ -36,10 +36,19 @@ export interface AppcaskTheme {
   navigationBarColor?: Color;
   splash?: SplashTheme;
   /**
-   * `css-vars` injects `--appcask-{top,right,bottom,left}-inset` so the site can
-   * pad around notches. Default `css-vars`.
+   * How the shell handles notches / status bar / home indicator.
+   * `inset` (default): the WebView is padded to the safe area.
+   * `css-vars`: edge-to-edge, `--appcask-{top,right,bottom,left}-inset` injected.
+   * `none`: edge-to-edge, no help.
    */
   safeArea?: 'inset' | 'css-vars' | 'none';
+  /**
+   * Only with `safeArea: 'css-vars'`. Offsets fixed/sticky elements by the
+   * safe-area inset so an edge-to-edge site looks right without CSS changes.
+   * `'header'` → `header { top: var(--appcask-top-inset) }`; `'@bottom'` suffix
+   * pins to the bottom inset (`'.fab@bottom'`).
+   */
+  insetSelectors?: string[];
 }
 
 export interface NavigationTab {
@@ -158,6 +167,7 @@ export interface ResolvedAppcaskConfig {
     navigationBarColor?: Color;
     splash?: SplashTheme;
     safeArea: 'inset' | 'css-vars' | 'none';
+    insetSelectors: string[];
   };
   navigation: { mode: 'single' | 'tabs' | 'drawer'; tabs: NavigationTab[] };
   features: {

@@ -69,6 +69,12 @@
           "enum": ["inset", "css-vars", "none"],
           "default": "inset",
           "description": "How the shell handles notches / status bar / home indicator. 'inset' (default): the WebView is padded to the safe area, filled with statusBar.color — any site looks right with no changes. 'css-vars': the WebView goes edge-to-edge and --appcask-{top,right,bottom,left}-inset are injected for the site to use. 'none': edge-to-edge, no help."
+        },
+        "insetSelectors": {
+          "type": "array",
+          "description": "Only with safeArea 'css-vars'. For an edge-to-edge look without editing the site: each entry offsets a fixed/sticky element by the safe-area inset. 'header' -> `header { top: var(--appcask-top-inset) }`; suffix '@bottom' pins to the bottom inset ('.fab@bottom').",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
         }
       }
     },

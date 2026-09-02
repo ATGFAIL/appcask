@@ -65,6 +65,7 @@ export function contextScript(env: InjectionEnv): string {
     detail: { insets: env.insets, platform: env.platform, online: env.online },
   });
   const useCssVars = config.theme.safeArea === 'css-vars';
+  const insetCss = useCssVars ? buildInsetSelectorCss(config.theme.insetSelectors) : '';
 
   return `(function () {
   try {
@@ -79,6 +80,13 @@ export function contextScript(env: InjectionEnv): string {
     root.style.setProperty('--appcask-left-inset', i.left + 'px');
     root.dataset.appcask = 'ready';`
         : ''
+    }${
+      insetCss
+        ? `
+    var s = document.getElementById('appcask-inset-css');
+    if (!s) { s = document.createElement('style'); s.id = 'appcask-inset-css'; document.head.appendChild(s); }
+    s.textContent = ${safeStringify(insetCss)};`
+        : ''
     }
     if (typeof window.__appcaskEmit === 'function') {
       window.__appcaskEmit(JSON.stringify(msg));
@@ -86,6 +94,23 @@ export function contextScript(env: InjectionEnv): string {
   } catch (e) {}
 })();
 true;`;
+}
+
+/**
+ * Turn `theme.insetSelectors` into CSS that offsets fixed / sticky elements by
+ * the safe-area inset — an edge-to-edge look with no changes to the site.
+ * `"header"` → top; `".fab@bottom"` → bottom.
+ */
+function buildInsetSelectorCss(selectors: string[]): string {
+  const rules: string[] = [];
+  for (const raw of selectors) {
+    const bottom = raw.endsWith('@bottom');
+    const selector = bottom ? raw.slice(0, -'@bottom'.length).trim() : raw.trim();
+    if (!selector) continue;
+    const edge = bottom ? 'bottom' : 'top';
+    rules.push(`${selector}{${edge}:var(--appcask-${edge}-inset) !important}`);
+  }
+  return rules.join('\n');
 }
 
 /** Deliver a native → page bridge message (response or event). */

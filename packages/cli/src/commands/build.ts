@@ -100,9 +100,12 @@ function run(cmd: string, args: string[], cwd: string): Promise<void> {
   return new Promise((resolvePromise, reject) => {
     line(dim(`  $ ${cmd} ${args.join(' ')}`));
     const win = platform() === 'win32';
-    // shell:true on Windows so `.bat` runs; quote the command so a path with
-    // spaces (C:\Users\John Smith\…) survives the shell split.
-    const child = spawn(win ? `"${cmd}"` : cmd, args, { cwd, stdio: 'inherit', shell: win });
+    // On Windows we need shell:true so `.bat` shims run. Quote the command only
+    // when it's an actual path (may contain spaces) — quoting a bare name like
+    // `npm` makes cmd.exe set an empty %0 dir, which breaks `%~dp0` inside
+    // npm.cmd and it can't find itself.
+    const spawnCmd = win && /[\\/]/.test(cmd) ? `"${cmd}"` : cmd;
+    const child = spawn(spawnCmd, args, { cwd, stdio: 'inherit', shell: win });
     child.on('error', reject);
     child.on('close', (code) =>
       code === 0 ? resolvePromise() : reject(new CliError(`${bold(cmd)} exited with code ${code}`)),

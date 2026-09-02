@@ -29,13 +29,18 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
       "background": "#ffffff",         // REQUIRED inside "splash"
       "logo": "assets/splash-logo.png" // optional centred logo
     },
-    "safeArea": "inset"                // how the app handles the notch / status bar / home indicator:
+    "safeArea": "inset",               // how the app handles the notch / status bar / home indicator:
                                        //  "inset"    (default) — the WebView is padded to the safe area
                                        //             and the strip is filled with statusBar.color.
                                        //             Any site looks right with no changes.
                                        //  "css-vars" — WebView goes edge-to-edge; --appcask-{top,right,
                                        //             bottom,left}-inset are injected for your CSS.
                                        //  "none"     — edge-to-edge, no help.
+    "insetSelectors": ["header", ".chat-fab@bottom"]
+                                       // only with "css-vars": get the edge-to-edge look WITHOUT editing
+                                       // the site. Each entry offsets a fixed/sticky element by the inset:
+                                       //   "header"          -> header { top: var(--appcask-top-inset) }
+                                       //   ".chat-fab@bottom" -> .chat-fab { bottom: var(--appcask-bottom-inset) }
   },
 
   "navigation": { "mode": "single" },  // "single" = one WebView. "tabs" / "drawer" add native

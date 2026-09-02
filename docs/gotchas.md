@@ -122,9 +122,14 @@ in a browser never accounted for either.
 
 **Solution.** `theme.safeArea: "inset"` (the default) pads the WebView to the
 safe area and fills the strip with `statusBar.color`, so **any** site looks
-right with no changes. Sites that want to paint edge-to-edge set
-`"css-vars"` and use the injected `--appcask-{top,right,bottom,left}-inset`
-variables.
+right with no changes.
+
+Want the immersive edge-to-edge look (content scrolling under a translucent
+status bar)? Set `"css-vars"`. Your site then reads the injected
+`--appcask-{top,right,bottom,left}-inset` variables — usually one rule on the
+header (`header { top: var(--appcask-top-inset) }`). If you can't touch the
+site's CSS, list the elements in `theme.insetSelectors` and the shell injects
+those rules for you.
 
 ## 8. `about:blank` takes over the app
 

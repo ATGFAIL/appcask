@@ -40,6 +40,7 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       navigationBarColor: config.theme?.navigationBarColor,
       splash: config.theme?.splash,
       safeArea: config.theme?.safeArea ?? 'inset',
+      insetSelectors: config.theme?.insetSelectors ?? [],
     },
     navigation: {
       mode: config.navigation?.mode ?? 'single',
