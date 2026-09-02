@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Appcask Shell</string>
+    <!-- Rewritten by `appcask android` from features.deepLinks.host. The default
+         is a host we don't control, so App Link verification simply fails and
+         links open the browser — which is the right behaviour until you set it. -->
+    <string name="appcask_deeplink_host">example.com</string>
+</resources>

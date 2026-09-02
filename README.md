@@ -85,12 +85,15 @@ See [`docs/gotchas`](./docs) for the full write-up on each.
 
 ## Roadmap
 
-- [x] Config schema + validator
-- [ ] CLI: `init`, `doctor`, `assets`, `android`, `build android`
-- [ ] Android shell: WebView, URL router, `window.appcask` bridge, OAuth handoff, offline, downloads
-- [ ] `@appcask/web` client
+- [x] Config schema + validator (`@appcask/config`)
+- [x] Bridge wire protocol + codec (`@appcask/bridge`)
+- [x] URL router — internal / separate-doc / auth / external / system (`@appcask/router`)
+- [x] `@appcask/web` client with per-call timeouts and browser fallbacks
+- [x] Android shell: WebView, router, `window.appcask` bridge, OAuth handoff, offline, back handler
+- [ ] CLI: `init` + `doctor` done — `assets`, `android`, `build android` next
 - [ ] Docs site + demo APK
 - [ ] iOS shell (`ASWebAuthenticationSession`)
+- [ ] Downloads + `<input type=file>` camera capture
 - [ ] Push (FCM + APNs) → tap opens a URL
 - [ ] Native bottom-tab / drawer navigation
 - [ ] Biometric app-lock, in-app review prompt

@@ -23,7 +23,7 @@ export {
   type ValidationResult,
 } from './validate.js';
 
-export { resolveConfig } from './resolve.js';
+export { resolveConfig, applyDefaults } from './resolve.js';
 
 /** Config schema version. Bumped when the shape changes incompatibly. */
 export const CONFIG_SCHEMA_VERSION = 1 as const;

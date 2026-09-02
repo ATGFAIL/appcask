@@ -1,0 +1,22 @@
+{
+  "$schema": "https://appcask.dev/schema/v1.json",
+  "identity": {
+    "appName": "Appcask Shell",
+    "packageName": "com.appcask.shell",
+    "version": "0.1.0"
+  },
+  "startUrl": "https://example.com/",
+  "internalHosts": ["example.com", "www.example.com"],
+  "theme": {
+    "statusBar": { "style": "dark", "color": "#ffffff" },
+    "navigationBarColor": "#ffffff",
+    "splash": { "background": "#ffffff" }
+  },
+  "features": {
+    "pullToRefresh": true,
+    "offlinePage": true,
+    "fileAccess": true,
+    "downloads": true,
+    "externalBrowserAuth": ["accounts.google.com", "appleid.apple.com", "login.microsoftonline.com"]
+  }
+}

@@ -8,6 +8,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
+    "./defaults": "./dist/defaults.js",
     "./schema.json": "./schema.json"
   },
   "files": ["dist", "schema.json"],
