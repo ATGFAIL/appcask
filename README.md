@@ -10,16 +10,23 @@ open-source and MIT-licensed.
 [![CI](https://github.com/ATGFAIL/appcask/actions/workflows/ci.yml/badge.svg)](https://github.com/ATGFAIL/appcask/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-[Quick start](#quick-start) · [Why appcask](#why-appcask) · [Config reference](./docs) · [Bridge protocol](./BRIDGE_PROTOCOL.md)
+[Quick start](#quick-start-local) · [Why appcask](#why-appcask) · [Docs](./docs) · [Config reference](./docs/config.md) · [Bridge protocol](./BRIDGE_PROTOCOL.md)
 
 </div>
 
 ---
 
-> **Status:** early development. The Android shell, config schema, and CLI are landing first.
+> **Status:** early development. The Android shell, config schema, and CLI work.
 > iOS, push notifications, and native navigation are on the [roadmap](#roadmap).
 
-## Quick start
+## No terminal? Build it in the cloud
+
+Fork this repo, edit [`my-app/appcask.config.json`](./my-app) in the browser,
+run the **Build my app** action, download the APK. Full walkthrough:
+[docs/getting-started.md](./docs/getting-started.md#the-no-terminal-way) ·
+prompts for doing it with an AI assistant: [docs/with-ai.md](./docs/with-ai.md).
+
+## Quick start (local)
 
 ```bash
 npx appcask init            # scaffold appcask.config.json + assets/
@@ -66,7 +73,7 @@ and that gap is exactly where the hard, under-documented problems live:
 | **Session lost on restart** | Some vendor ROMs expose Keychain but fail the final encrypted write | Verify-after-write + app-private fallback so a login is never silently discarded |
 | **Deep links / App Links** | `assetlinks.json` / `apple-app-site-association` misconfigured = links open the browser, not the app | `appcask doctor` checks reachability and format; the CLI writes the intent filters |
 
-See [`docs/gotchas`](./docs) for the full write-up on each.
+See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 
 ### appcask vs the alternatives
 

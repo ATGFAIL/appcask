@@ -1,0 +1,73 @@
+name: Build my app
+
+# Builds the APK described by my-app/appcask.config.json.
+#   - "Run workflow" button in the Actions tab, or
+#   - automatically when you commit a change under my-app/
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'my-app/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the appcask CLI
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r --filter "./packages/*" build
+
+      - name: Build the app
+        working-directory: my-app
+        run: node ../packages/cli/dist/cli.js build android
+
+      - name: Find the APK
+        id: apk
+        run: echo "path=$(ls my-app/build/*.apk | head -1)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-app-apk
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f "${{ steps.apk.outputs.path }}" ]; then
+            echo "### ✅ APK ready" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Download **my-app-apk** from Artifacts below, unzip it, copy the \`.apk\` to an Android phone, and tap it." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "> Signed with a test key — good for sideloading, not the Play Store." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### ❌ Build failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Open the failed step above, copy the error, and see [docs/troubleshooting.md](../blob/main/docs/troubleshooting.md) or the AI prompt in [docs/with-ai.md](../blob/main/docs/with-ai.md)." >> "$GITHUB_STEP_SUMMARY"
+          fi

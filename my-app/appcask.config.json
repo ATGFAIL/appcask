@@ -1,0 +1,23 @@
+{
+  "$schema": "https://appcask.dev/schema/v1.json",
+
+  "identity": {
+    "appName": "My App",
+    "packageName": "com.example.myapp",
+    "version": "1.0.0"
+  },
+
+  "startUrl": "https://example.com",
+  "internalHosts": ["example.com", "www.example.com"],
+
+  "theme": {
+    "statusBar": { "style": "dark", "color": "#ffffff" },
+    "splash": { "background": "#ffffff" }
+  },
+
+  "features": {
+    "pullToRefresh": true,
+    "offlinePage": true,
+    "externalBrowserAuth": ["accounts.google.com", "appleid.apple.com"]
+  }
+}
