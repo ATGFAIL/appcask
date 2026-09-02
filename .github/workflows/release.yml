@@ -1,0 +1,70 @@
+name: Release
+
+# On a version tag: build the MDN demo app and attach the APK to the release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  demo-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the CLI
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r --filter "./packages/*" build
+
+      - name: Build the MDN demo
+        working-directory: examples/mdn
+        run: node ../../packages/cli/dist/cli.js build android --archs arm64-v8a,x86_64
+
+      - name: Rename the APK
+        id: apk
+        run: |
+          src=$(ls examples/mdn/build/*.apk | head -1)
+          dest="appcask-mdn-demo-${GITHUB_REF_NAME}.apk"
+          cp "$src" "$dest"
+          echo "path=$dest" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.path }}
+          generate_release_notes: true
+          body: |
+            The **MDN Reader** demo — `developer.mozilla.org` wrapped with the
+            `examples/mdn/appcask.config.json` in this repo. Sideload it on Android to
+            see the shell (offline screen, pull-to-refresh, GitHub sign-in handoff,
+            deep links into `/docs/*`). Signed with a test key.
+
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r --filter "./packages/*" build
+      - run: pnpm -r test

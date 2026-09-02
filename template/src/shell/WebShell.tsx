@@ -17,6 +17,7 @@ import { native } from './native';
 import { handleBridgeMessage, type DispatchContext } from './bridgeDispatch';
 import { beforeContentScript, contextScript, deliverScript } from './injection';
 import { OfflineScreen } from './OfflineScreen';
+import { TabBar, activeTabIndex } from './TabBar';
 import { SHELL_VERSION } from './version';
 import {
   updatesEnabled,
@@ -37,6 +38,8 @@ interface Maintenance {
   title: string;
   body: string;
 }
+
+const TABS = config.navigation.mode === 'tabs' ? config.navigation.tabs : [];
 
 /**
  * `inset` (the default): the WebView sits inside the safe area, so any website
@@ -71,6 +74,7 @@ export function WebShell(): React.JSX.Element {
   const [offline, setOffline] = useState(false);
   const [booting, setBooting] = useState(updatesEnabled);
   const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
+  const [currentUrl, setCurrentUrl] = useState(config.startUrl);
   const currentUrlRef = useRef(config.startUrl);
   const healthRef = useRef<HealthState>(INITIAL_HEALTH);
 
@@ -243,7 +247,10 @@ export function WebShell(): React.JSX.Element {
 
   const onNavigationStateChange = useCallback((nav: WebViewNavigation) => {
     setCanGoBack(nav.canGoBack);
-    if (nav.url) currentUrlRef.current = nav.url;
+    if (nav.url) {
+      currentUrlRef.current = nav.url;
+      if (TABS.length > 0) setCurrentUrl(nav.url);
+    }
   }, []);
 
   const retry = useCallback(() => {
@@ -274,6 +281,7 @@ export function WebShell(): React.JSX.Element {
       <WebView
         key={reloadKey}
         ref={webRef}
+        style={styles.fill}
         source={{ uri: sourceUrl }}
         applicationNameForUserAgent={UA_TAG}
         originWhitelist={['https://*', 'http://*']}
@@ -306,6 +314,16 @@ export function WebShell(): React.JSX.Element {
           if (isNetworkError(e.nativeEvent.code)) setOffline(true);
         }}
       />
+      {TABS.length > 0 ? (
+        <TabBar
+          tabs={TABS}
+          activeIndex={activeTabIndex(TABS, currentUrl)}
+          onSelect={(i) => {
+            const tab = TABS[i];
+            if (tab) loadNative(tab.url);
+          }}
+        />
+      ) : null}
     </Frame>
   );
 }

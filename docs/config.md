@@ -43,8 +43,16 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
                                        //   ".chat-fab@bottom" -> .chat-fab { bottom: var(--appcask-bottom-inset) }
   },
 
-  "navigation": { "mode": "single" },  // "single" = one WebView. "tabs" / "drawer" add native
-                                       // chrome and are on the roadmap.
+  "navigation": {
+    "mode": "single",                  // "single" = one WebView.
+                                       // "tabs" = a native bottom bar; each tab loads a URL.
+                                       // "drawer" is still on the roadmap (treated as "single").
+    "tabs": [                           // used when mode is "tabs"
+      { "label": "Home", "url": "https://acme.example/" },
+      { "label": "Shop", "url": "https://acme.example/shop", "icon": "🛍️" },
+      { "label": "Account", "url": "https://acme.example/account", "icon": "👤" }
+    ]
+  },
 
   "features": {
     "pullToRefresh": true,             // swipe down to reload (default false)

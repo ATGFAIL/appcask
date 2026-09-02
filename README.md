@@ -16,8 +16,9 @@ open-source and MIT-licensed.
 
 ---
 
-> **Status:** early development. The Android shell, config schema, and CLI work.
-> iOS, push notifications, and native navigation are on the [roadmap](#roadmap).
+> **Status:** the Android shell and the CLI work end to end and build a running
+> APK (locally and [in the cloud](#no-terminal-build-it-in-the-cloud)). iOS and
+> push notifications are on the [roadmap](#roadmap).
 
 ## No terminal? Build it in the cloud
 
@@ -111,12 +112,11 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] File `<input>` + camera capture, downloads (via `DownloadManager`, with cookies)
 - [x] `appcask doctor --production` — signing, assetlinks fingerprint, live-site (CSP / cookies / viewport / UA), store-review risk
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
-- [ ] Docs site + demo APK in Releases
+- [x] Native bottom-tab navigation (`navigation.mode: "tabs"`)
+- [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
 - [ ] iOS shell (`ASWebAuthenticationSession`)
-- [ ] Downloads + `<input type=file>` camera capture
 - [ ] Push (FCM + APNs) → tap opens a URL
-- [ ] Native bottom-tab / drawer navigation
-- [ ] Biometric app-lock, in-app review prompt
+- [ ] Drawer navigation, biometric app-lock, in-app review prompt
 
 ## Contributing
 
