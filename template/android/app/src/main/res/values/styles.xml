@@ -6,10 +6,10 @@
     </style>
 
     <!-- Launch / splash theme (Android 12+ SplashScreen API, via core-splashscreen).
-         `appcask android` fills @color/appcask_splash_background from the config. -->
+         The splash icon is the launcher icon; `appcask android` fills
+         @color/appcask_splash_background from the config theme. -->
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/appcask_splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_splash</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 

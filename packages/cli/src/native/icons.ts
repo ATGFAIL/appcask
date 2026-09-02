@@ -14,16 +14,15 @@ const DENSITIES: Record<string, number> = {
 
 const LEGACY_DP = 48; // square launcher icon baseline
 const ADAPTIVE_DP = 108; // adaptive-icon layer baseline
-const SPLASH_DP = 96; // Android 12 splash icon (kept modest so it never clips)
 
 export interface IconInputs {
   /** Full-bleed square source, ideally 1024×1024, opaque. Required. */
   icon: string;
   /** Transparent adaptive-icon foreground (icon centred in a ~66dp safe zone). Optional. */
   foreground?: string;
-  /** Transparent splash logo. Optional — falls back to `icon`. */
+  /** Reserved for a custom splash logo (not wired yet — the launcher icon is used). */
   splash?: string;
-  /** `#rrggbb` behind the adaptive icon and splash. */
+  /** `#rrggbb` behind the adaptive icon. */
   backgroundColor: string;
 }
 
@@ -42,12 +41,10 @@ export async function generateAndroidIcons(resDir: string, inputs: IconInputs): 
 
   const bg = normalizeHex(inputs.backgroundColor);
   const foregroundSrc = inputs.foreground && existsSync(inputs.foreground) ? inputs.foreground : null;
-  const splashSrc = inputs.splash && existsSync(inputs.splash) ? inputs.splash : inputs.icon;
 
   for (const [density, mult] of Object.entries(DENSITIES)) {
     const legacy = Math.round(LEGACY_DP * mult);
     const adaptive = Math.round(ADAPTIVE_DP * mult);
-    const splashPx = Math.round(SPLASH_DP * mult);
 
     const square = await sharp(inputs.icon).resize(legacy, legacy, { fit: 'cover' }).png().toBuffer();
     await put(`mipmap-${density}/ic_launcher.png`, square);
@@ -60,8 +57,6 @@ export async function generateAndroidIcons(resDir: string, inputs: IconInputs): 
       : await insetOnCanvas(inputs.icon, adaptive, 0.62);
     await put(`mipmap-${density}/ic_launcher_foreground.png`, fg);
     await put(`mipmap-${density}/ic_launcher_background.png`, await solid(adaptive, bg));
-
-    await put(`mipmap-${density}/ic_splash.png`, await insetOnCanvas(splashSrc, splashPx, 0.9));
   }
 
   await put('mipmap-anydpi-v26/ic_launcher.xml', Buffer.from(ADAPTIVE_XML, 'utf8'));
