@@ -71,6 +71,25 @@ export function colorsXml(config: ResolvedAppcaskConfig): string {
 `;
 }
 
+/**
+ * Drop permissions the config doesn't need, so they don't show on the store
+ * listing. The template declares CAMERA (file capture) and WRITE_EXTERNAL_STORAGE
+ * (downloads on old Android).
+ */
+export function patchManifestPermissions(
+  content: string,
+  opts: { fileAccess: boolean; downloads: boolean },
+): string {
+  let out = content;
+  if (!opts.fileAccess) {
+    out = out.replace(/^.*android\.permission\.CAMERA.*\n?/m, '');
+  }
+  if (!opts.downloads) {
+    out = out.replace(/^.*android\.permission\.WRITE_EXTERNAL_STORAGE.*\n?/m, '');
+  }
+  return out;
+}
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, '&amp;')

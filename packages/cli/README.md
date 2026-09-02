@@ -4,11 +4,12 @@ The CLI. Turn any website into a real Android app from one config file.
 
 ```bash
 npx appcask init                    # scaffold appcask.config.json + assets/
-npx appcask doctor                  # validate config, check assetlinks / AASA / icons
+npx appcask doctor [--production]   # validate config; --production also checks the live site
 npx appcask assets                  # preview every generated icon + splash size
 npx appcask android                 # materialize a buildable Android project
 npx appcask build android           # materialize + npm install + Gradle -> APK
 npx appcask build android --aab     # -> AAB for the Play Store
+npx appcask run                     # debug build -> install on a device -> start Metro
 ```
 
 ## `appcask android [--out <dir>] [--force]`

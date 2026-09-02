@@ -8,6 +8,7 @@ import { doctorCommand } from './commands/doctor.js';
 import { assetsCommand } from './commands/assets.js';
 import { androidCommand } from './commands/android.js';
 import { buildAndroidCommand } from './commands/build.js';
+import { runCommand } from './commands/run.js';
 import { stubCommand } from './commands/stub.js';
 
 const BOOLEAN_FLAGS = [
@@ -18,6 +19,7 @@ const BOOLEAN_FLAGS = [
   'aab',
   'debug',
   'skip-install',
+  'no-metro',
   'help',
   'version',
   'h',
@@ -37,7 +39,8 @@ ${bold('Commands')}
   ${cyan('assets')}               generate every icon + splash size (preview)
   ${cyan('android')} [--out dir]  materialize the Android project from the config
   ${cyan('build')} android        materialize + build a signed APK / AAB
-  ${cyan('run')}                  install a debug build on a device             ${dim('(coming soon)')}
+  ${cyan('run')}                  build a debug APK, install it on a device, start Metro
+  ${cyan('ios')}                  materialize the iOS project                   ${dim('(coming soon)')}
 
 ${bold('Options')}
   --yes            init: accept defaults, no prompts
@@ -123,8 +126,15 @@ async function main(argv: string[]): Promise<number> {
       return 0;
     }
 
-    case 'ios':
     case 'run':
+      await runCommand({
+        project: flagStr(flags, 'project'),
+        noMetro: flagBool(flags, 'no-metro', 'noMetro'),
+        skipInstall: flagBool(flags, 'skip-install', 'skipInstall'),
+      });
+      return 0;
+
+    case 'ios':
       await stubCommand(command);
       return 0;
 

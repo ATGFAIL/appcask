@@ -297,6 +297,11 @@ export function WebShell(): React.JSX.Element {
         sharedCookiesEnabled
         thirdPartyCookiesEnabled
         allowFileAccess={config.features.fileAccess}
+        allowsInlineMediaPlayback
+        mediaPlaybackRequiresUserAction={false}
+        {...(config.features.downloads
+          ? { downloadingMessage: `Downloading…`, lackPermissionToDownloadMessage: 'Storage permission is needed to download.' }
+          : {})}
         onError={(e: WebViewErrorEvent) => {
           if (isNetworkError(e.nativeEvent.code)) setOffline(true);
         }}

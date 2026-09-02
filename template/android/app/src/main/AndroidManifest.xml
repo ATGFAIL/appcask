@@ -3,6 +3,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- camera capture from <input type="file" accept="image/*" capture>. `appcask android`
+         removes this when features.fileAccess is false. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- DownloadManager needs this only on Android 9 and older -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <!-- download-complete notifications (Android 13+); also used by push later -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Custom Tabs / external browser handoff needs explicit package visibility on Android 11+ -->
     <queries>

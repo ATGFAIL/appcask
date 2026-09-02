@@ -107,7 +107,8 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Android shell: WebView, router, `window.appcask` bridge, OAuth handoff, offline, back handler
 - [x] Safe-area handling by default (`theme.safeArea: "inset"`)
 - [x] Per-host/path capability scoping for the bridge (`bridge.grants`)
-- [x] CLI: `init`, `doctor` (+ `--production`), `assets`, `android` (materialize + rename + icons), `build android`
+- [x] CLI: `init`, `doctor` (+ `--production`), `assets`, `android`, `build android`, `run`
+- [x] File `<input>` + camera capture, downloads (via `DownloadManager`, with cookies)
 - [x] `appcask doctor --production` — signing, assetlinks fingerprint, live-site (CSP / cookies / viewport / UA), store-review risk
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
 - [ ] Docs site + demo APK in Releases

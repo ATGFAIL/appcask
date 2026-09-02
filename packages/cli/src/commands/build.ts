@@ -68,7 +68,7 @@ export async function buildAndroidCommand(flags: BuildFlags): Promise<void> {
   line(`  install:  ${cyan(`adb install -r "${artifact.dest}"`)}`);
 }
 
-function ensureAndroidSdk(androidDir: string): void {
+export function ensureAndroidSdk(androidDir: string): void {
   if (process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT) return;
   if (existsSync(join(androidDir, 'local.properties'))) return;
   throw new CliError(
@@ -96,7 +96,7 @@ async function collectArtifact(
   return { dest };
 }
 
-function run(cmd: string, args: string[], cwd: string): Promise<void> {
+export function run(cmd: string, args: string[], cwd: string): Promise<void> {
   return new Promise((resolvePromise, reject) => {
     line(dim(`  $ ${cmd} ${args.join(' ')}`));
     const win = platform() === 'win32';

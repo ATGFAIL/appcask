@@ -11,6 +11,7 @@ import {
   patchAppJson,
   patchBuildGradle,
   patchKotlinPackage,
+  patchManifestPermissions,
   patchStringsXml,
 } from './androidPatch.js';
 
@@ -159,6 +160,13 @@ async function patchAndroid(
 
   await edit(join(res, 'values', 'strings.xml'), (c) =>
     patchStringsXml(c, { appName: config.identity.appName, deeplinkHost: deeplinkHost(config) }),
+  );
+
+  await edit(join(androidApp, 'src', 'main', 'AndroidManifest.xml'), (c) =>
+    patchManifestPermissions(c, {
+      fileAccess: config.features.fileAccess,
+      downloads: config.features.downloads,
+    }),
   );
 
   await edit(join(outDir, 'app.json'), (c) => patchAppJson(c, { appName: config.identity.appName }));

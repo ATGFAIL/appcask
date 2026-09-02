@@ -6,6 +6,7 @@ import {
   patchStringsXml,
   patchAppJson,
   patchKotlinPackage,
+  patchManifestPermissions,
   colorsXml,
   deeplinkHost,
 } from './androidPatch.js';
@@ -96,6 +97,29 @@ class X : com.appcaskshell.Base()`;
   it('does not touch a similarly-named package', () => {
     const kt = 'package com.appcaskshelltools';
     expect(patchKotlinPackage(kt, { oldPackage: 'com.appcaskshell', newPackage: 'x.y' })).toBe(kt);
+  });
+});
+
+describe('patchManifestPermissions', () => {
+  const manifest = `<manifest>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+</manifest>`;
+
+  it('keeps everything when both features are on', () => {
+    expect(patchManifestPermissions(manifest, { fileAccess: true, downloads: true })).toBe(manifest);
+  });
+  it('drops CAMERA when fileAccess is off', () => {
+    const out = patchManifestPermissions(manifest, { fileAccess: false, downloads: true });
+    expect(out).not.toContain('CAMERA');
+    expect(out).toContain('WRITE_EXTERNAL_STORAGE');
+    expect(out).toContain('INTERNET');
+  });
+  it('drops WRITE_EXTERNAL_STORAGE when downloads is off', () => {
+    const out = patchManifestPermissions(manifest, { fileAccess: true, downloads: false });
+    expect(out).not.toContain('WRITE_EXTERNAL_STORAGE');
+    expect(out).toContain('CAMERA');
   });
 });
 
