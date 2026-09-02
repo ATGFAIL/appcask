@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- `appcask android` rewrites these from the config theme. -->
+<resources>
+    <color name="appcask_status_bar">#ffffff</color>
+    <color name="appcask_navigation_bar">#ffffff</color>
+    <color name="appcask_splash_background">#ffffff</color>
+</resources>

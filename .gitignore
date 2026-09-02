@@ -24,6 +24,10 @@ template/*.jks
 # generated native projects (CLI output)
 .appcask/
 appcask-build/
+*-android/
+
+# CLI publish bundle (built by prepack)
+packages/cli/templates/
 
 # env / secrets
 .env

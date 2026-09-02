@@ -22,11 +22,16 @@ open-source and MIT-licensed.
 ## Quick start
 
 ```bash
-npx appcask init          # scaffold appcask.config.json + assets/
-npx appcask doctor        # validate config, check assetlinks / icon sizes
-npx appcask assets        # generate every icon + splash size from one source
-npx appcask build android # -> signed APK / AAB
+npx appcask init            # scaffold appcask.config.json + assets/
+# drop assets/icon.png (1024×1024) and edit the config
+npx appcask doctor          # validate config, check assetlinks / icon sizes
+npx appcask build android   # materialize + Gradle -> APK  (needs Android SDK + JDK 17)
 ```
+
+The `build` step runs `appcask android` first — copies the React Native shell,
+rewrites the package name / app name / version / theme, generates every icon
+size, and vendors the `@appcask/*` packages — then `npm install` + Gradle.
+Or run `appcask android` yourself and build the resulting RN project by hand.
 
 A minimal `appcask.config.json`:
 
@@ -90,8 +95,8 @@ See [`docs/gotchas`](./docs) for the full write-up on each.
 - [x] URL router — internal / separate-doc / auth / external / system (`@appcask/router`)
 - [x] `@appcask/web` client with per-call timeouts and browser fallbacks
 - [x] Android shell: WebView, router, `window.appcask` bridge, OAuth handoff, offline, back handler
-- [ ] CLI: `init` + `doctor` done — `assets`, `android`, `build android` next
-- [ ] Docs site + demo APK
+- [x] CLI: `init`, `doctor`, `assets`, `android` (materialize + rename + icons), `build android`
+- [ ] Docs site + demo APK in Releases
 - [ ] iOS shell (`ASWebAuthenticationSession`)
 - [ ] Downloads + `<input type=file>` camera capture
 - [ ] Push (FCM + APNs) → tap opens a URL
