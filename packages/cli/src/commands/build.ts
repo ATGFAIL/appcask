@@ -1,11 +1,11 @@
 import { spawn } from 'node:child_process';
 import { copyFile, mkdir, readdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { platform } from 'node:os';
 import { loadProject } from '../project.js';
 import { androidCommand } from './android.js';
-import { CliError, bold, cyan, dim, green, heading, info, line, ok } from '../ui.js';
+import { CliError, bold, cyan, dim, green, heading, info, line, ok, warn } from '../ui.js';
 
 interface BuildFlags {
   /** An existing materialized project. Otherwise one is created / refreshed. */
@@ -35,6 +35,14 @@ export async function buildAndroidCommand(flags: BuildFlags): Promise<void> {
 
   ensureAndroidSdk(androidDir);
 
+  if (platform() === 'win32' && outDir.length > 90) {
+    warn(
+      `this project path is ${outDir.length} chars — Windows' 260-char limit breaks the CMake / NDK build ` +
+        `deep inside it. Build from a short path (e.g. C:\\a) or enable long paths ` +
+        `(git config --global core.longpaths true; the LongPathsEnabled registry key).`,
+    );
+  }
+
   if (!flags.skipInstall && !existsSync(join(outDir, 'node_modules'))) {
     heading('Installing shell dependencies');
     await run('npm', ['install', '--no-audit', '--no-fund'], outDir);
@@ -62,7 +70,15 @@ export async function buildAndroidCommand(flags: BuildFlags): Promise<void> {
   if (flags.debug) {
     info('Debug build — it loads JS from Metro. Run `npx react-native start` in the project first.');
   } else {
-    info('Self-contained. Signed with the template debug keystore — set a release keystore before publishing.');
+    const signed = releaseKeystoreConfigured(androidDir);
+    info('Self-contained — installs and runs without Metro.');
+    if (!signed) {
+      warn(
+        'signed with the TEMPLATE DEBUG KEY. The Play Store rejects this, and App Links / the OAuth ' +
+          `return won't verify against a real fingerprint. Set signingConfigs.release in ` +
+          `${dim(join(outDir, 'android/app/build.gradle'))} before publishing — see docs/production.md.`,
+      );
+    }
   }
   line();
   line(`  install:  ${cyan(`adb install -r "${artifact.dest}"`)}`);
@@ -94,6 +110,17 @@ async function collectArtifact(
   const dest = join(outDir, `${opts.appSlug}-${opts.version}-${opts.variant}${ext}`);
   await copyFile(join(dir, found[0] as string), dest);
   return { dest };
+}
+
+export /** Has the release build type been pointed at a non-debug signing config? */
+function releaseKeystoreConfigured(androidDir: string): boolean {
+  try {
+    const gradle = readFileSync(join(androidDir, 'app', 'build.gradle'), 'utf8');
+    const release = /release\s*\{[^}]*\}/s.exec(gradle)?.[0] ?? '';
+    return /signingConfig\s+signingConfigs\.release/.test(release);
+  } catch {
+    return false;
+  }
 }
 
 export function run(cmd: string, args: string[], cwd: string): Promise<void> {
