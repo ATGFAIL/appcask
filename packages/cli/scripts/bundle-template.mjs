@@ -2,7 +2,7 @@
 // published `appcask` is self-contained. Run by `prepack`.
 import { cp, rm, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const cliDir = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -17,7 +17,7 @@ await mkdir(dest, { recursive: true });
 await cp(join(repoRoot, 'template'), join(dest, 'react-native'), {
   recursive: true,
   filter: (from) => {
-    const base = from.split('/').pop() ?? '';
+    const base = basename(from);
     return !SKIP.has(base) && !base.startsWith('_APPCASK');
   },
 });

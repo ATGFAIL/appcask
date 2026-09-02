@@ -1,6 +1,6 @@
 import { cp, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import type { ResolvedAppcaskConfig } from '@appcask/config';
 import { appcaskPackageDirs, templateDir } from '../paths.js';
 import { generateAndroidIcons, generatePlayStoreIcon } from './icons.js';
@@ -58,7 +58,7 @@ export async function materializeAndroid(
   await cp(src, outDir, {
     recursive: true,
     filter: (from) => {
-      const base = from.split('/').pop() ?? '';
+      const base = basename(from); // basename, not split('/') — Windows paths use \
       if (COPY_SKIP.has(base)) return false;
       if (base.startsWith('_APPCASK')) return false;
       return true;

@@ -16,6 +16,8 @@ interface BuildFlags {
   debug: boolean;
   /** Skip `npm install` in the project. */
   skipInstall: boolean;
+  /** Comma-separated ABIs, e.g. `arm64-v8a,x86_64`. Default: all four. */
+  archs?: string;
   force: boolean;
 }
 
@@ -41,8 +43,12 @@ export async function buildAndroidCommand(flags: BuildFlags): Promise<void> {
   const variant = flags.debug ? 'Debug' : 'Release';
   const task = `${flags.aab ? 'bundle' : 'assemble'}${variant}`;
   heading(`Gradle :app:${task}`);
-  const gradlew = platform() === 'win32' ? 'gradlew.bat' : './gradlew';
-  await run(gradlew, [`:app:${task}`], androidDir);
+  // Absolute path: Git Bash on Windows sets NoDefaultCurrentDirectoryInExePath,
+  // so cmd.exe won't resolve a bare `gradlew.bat` from the cwd.
+  const gradlew = resolve(androidDir, platform() === 'win32' ? 'gradlew.bat' : 'gradlew');
+  const gradleArgs = [`:app:${task}`];
+  if (flags.archs) gradleArgs.push(`-PreactNativeArchitectures=${flags.archs.replace(/\s+/g, '')}`);
+  await run(gradlew, gradleArgs, androidDir);
 
   const artifact = await collectArtifact(androidDir, project.root, {
     aab: flags.aab,
@@ -93,7 +99,10 @@ async function collectArtifact(
 function run(cmd: string, args: string[], cwd: string): Promise<void> {
   return new Promise((resolvePromise, reject) => {
     line(dim(`  $ ${cmd} ${args.join(' ')}`));
-    const child = spawn(cmd, args, { cwd, stdio: 'inherit', shell: platform() === 'win32' });
+    const win = platform() === 'win32';
+    // shell:true on Windows so `.bat` runs; quote the command so a path with
+    // spaces (C:\Users\John Smith\…) survives the shell split.
+    const child = spawn(win ? `"${cmd}"` : cmd, args, { cwd, stdio: 'inherit', shell: win });
     child.on('error', reject);
     child.on('close', (code) =>
       code === 0 ? resolvePromise() : reject(new CliError(`${bold(cmd)} exited with code ${code}`)),

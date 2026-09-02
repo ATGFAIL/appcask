@@ -45,6 +45,7 @@ ${bold('Options')}
   --project <dir>  build: use an existing materialized project
   --aab            build: produce an .aab instead of an .apk
   --debug          build: debug variant (needs Metro running)
+  --archs <list>   build: comma-separated ABIs (e.g. arm64-v8a,x86_64)
   --skip-install   build: don't run npm install
   -v, --version    print version
   -h, --help       print this help
@@ -104,6 +105,7 @@ async function main(argv: string[]): Promise<number> {
         aab: flagBool(flags, 'aab'),
         debug: flagBool(flags, 'debug'),
         skipInstall: flagBool(flags, 'skip-install', 'skipInstall'),
+        archs: flagStr(flags, 'archs'),
         force: flagBool(flags, 'force'),
       });
       return 0;
