@@ -7,6 +7,7 @@ import {
   patchAppJson,
   patchKotlinPackage,
   patchManifestPermissions,
+  patchManifestShareTarget,
   colorsXml,
   deeplinkHost,
 } from './androidPatch.js';
@@ -120,6 +121,34 @@ describe('patchManifestPermissions', () => {
     const out = patchManifestPermissions(manifest, { fileAccess: true, downloads: false });
     expect(out).not.toContain('WRITE_EXTERNAL_STORAGE');
     expect(out).toContain('CAMERA');
+  });
+});
+
+describe('patchManifestShareTarget', () => {
+  const manifest = `<manifest>
+    <application>
+      <activity android:name=".MainActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+        </intent-filter>
+      </activity>
+    </application>
+</manifest>`;
+
+  it('adds the SEND filter when enabled', () => {
+    const out = patchManifestShareTarget(manifest, true);
+    expect(out).toContain('android.intent.action.SEND');
+    expect(out).toContain('android:mimeType="text/plain"');
+  });
+  it('is idempotent', () => {
+    const once = patchManifestShareTarget(manifest, true);
+    expect(patchManifestShareTarget(once, true)).toBe(once);
+  });
+  it('removes it when disabled', () => {
+    const withFilter = patchManifestShareTarget(manifest, true);
+    const out = patchManifestShareTarget(withFilter, false);
+    expect(out).not.toContain('android.intent.action.SEND');
+    expect(out).toContain('android.intent.action.MAIN');
   });
 });
 

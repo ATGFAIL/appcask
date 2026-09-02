@@ -61,6 +61,8 @@ One file describes the whole app. Only `identity` and `startUrl` are required.
     "downloads": true,                 // route downloads to the OS download manager (default true)
     "biometricLock": false,            // require fingerprint / Face ID to open the app; exposes window.appcask.biometric()
     "appReviewPrompt": false,          // exposes window.appcask.requestReview() (asks the OS to show its prompt)
+    "shareTarget": { "url": "https://acme.example/new?body=" },
+                                      // the app becomes a share target; shared text is encoded and appended to this URL
     "push": { "provider": "fcm" },     // Android FCM — also needs google-services.json (see push.md)
 
     "externalBrowserAuth": [           // identity providers that BLOCK embedded WebViews.

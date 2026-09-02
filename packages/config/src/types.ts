@@ -120,7 +120,8 @@ export interface AppcaskFeatures {
   /** Route download responses through the OS download manager. Default `true`. */
   downloads?: boolean;
   /** Register the app as an Android share target that forwards to a URL (roadmap). */
-  shareTarget?: boolean;
+  /** Register the app as a share target; shared text is appended (encoded) to `url`. */
+  shareTarget?: { url: string };
   /** Expose `window.appcask.review.request()`. */
   appReviewPrompt?: boolean;
   /** Require fingerprint / Face ID to open the app. Also exposes `biometric.authenticate()`. */
@@ -212,7 +213,7 @@ export interface ResolvedAppcaskConfig {
     offlinePage: boolean;
     fileAccess: boolean;
     downloads: boolean;
-    shareTarget: boolean;
+    shareTarget?: { url: string };
     appReviewPrompt: boolean;
     biometricLock: boolean;
     externalBrowserAuth: string[];

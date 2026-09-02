@@ -36,9 +36,18 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
 
   private var pendingAuth: Promise? = null
   private var authCallbackHosts: List<String> = emptyList()
+  /** A deep link / share received before JS was listening — drained by getInitialDeepLink(). */
+  private var pendingDeepLink: String? = null
 
   init {
     AuthRedirectBus.register { uri -> onAuthRedirect(uri) }
+  }
+
+  @ReactMethod
+  fun getInitialDeepLink(promise: Promise) {
+    val url = pendingDeepLink
+    pendingDeepLink = null
+    promise.resolve(url)
   }
 
   // --- haptics ---
@@ -245,13 +254,23 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
     }
   }
 
+  /**
+   * An incoming ACTION_VIEW / ACTION_SEND url. If it's the redirect for an
+   * in-flight auth session, resolve that promise; otherwise treat it as a deep
+   * link / share and hand it to the WebView.
+   */
   private fun onAuthRedirect(uri: Uri) {
-    val host = uri.host ?: return
-    val matches = authCallbackHosts.any { it == host || (it.startsWith(".") && host.endsWith(it)) }
-    if (!matches) return
-    val promise = pendingAuth ?: return
-    pendingAuth = null
-    promise.resolve(Arguments.createMap().apply { putString("redirectUrl", uri.toString()) })
+    val host = uri.host
+    val pending = pendingAuth
+    if (pending != null && host != null &&
+      authCallbackHosts.any { it == host || (it.startsWith(".") && host.endsWith(it)) }
+    ) {
+      pendingAuth = null
+      pending.resolve(Arguments.createMap().apply { putString("redirectUrl", uri.toString()) })
+      return
+    }
+    pendingDeepLink = uri.toString()
+    emit("appcask:deeplink", Arguments.createMap().apply { putString("url", uri.toString()) })
   }
 
   private fun runOnUi(block: () -> Unit) {
@@ -259,7 +278,6 @@ class AppcaskNativeModule(private val reactContext: ReactApplicationContext) :
     if (activity != null) activity.runOnUiThread(block) else block()
   }
 
-  @Suppress("unused")
   private fun emit(name: String, params: com.facebook.react.bridge.WritableMap) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)

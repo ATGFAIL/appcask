@@ -1,6 +1,7 @@
 package com.appcaskshell
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.facebook.react.ReactActivity
@@ -18,20 +19,32 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     installSplashScreen()
     super.onCreate(savedInstanceState)
-    forwardAuthRedirect(intent)
+    handleIntent(intent)
   }
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     setIntent(intent)
-    forwardAuthRedirect(intent)
+    handleIntent(intent)
   }
 
-  /** A verified App Link that came back from a Custom Tab auth flow. */
-  private fun forwardAuthRedirect(intent: Intent?) {
-    val data = intent?.data ?: return
-    if (intent.action == Intent.ACTION_VIEW && (data.scheme == "https" || data.scheme == "http")) {
-      AuthRedirectBus.publish(data)
+  /**
+   * An App Link (an auth redirect, or a deep link tap) or a share to the app —
+   * hand the URL to [AuthRedirectBus], which routes it to the auth promise or
+   * the WebView.
+   */
+  private fun handleIntent(intent: Intent?) {
+    intent ?: return
+    when (intent.action) {
+      Intent.ACTION_VIEW -> {
+        val data = intent.data ?: return
+        if (data.scheme == "https" || data.scheme == "http") AuthRedirectBus.publish(data)
+      }
+      Intent.ACTION_SEND -> {
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
+        val base = getString(R.string.appcask_share_url)
+        if (base.isNotEmpty()) AuthRedirectBus.publish(Uri.parse(base + Uri.encode(text)))
+      }
     }
   }
 }

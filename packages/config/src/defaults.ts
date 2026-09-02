@@ -51,7 +51,7 @@ export function applyDefaults(config: AppcaskConfig): ResolvedAppcaskConfig {
       offlinePage: f.offlinePage ?? true,
       fileAccess: f.fileAccess ?? true,
       downloads: f.downloads ?? true,
-      shareTarget: f.shareTarget ?? false,
+      shareTarget: f.shareTarget ? { url: f.shareTarget.url } : undefined,
       appReviewPrompt: f.appReviewPrompt ?? false,
       biometricLock: f.biometricLock ?? false,
       externalBrowserAuth: f.externalBrowserAuth ?? [],

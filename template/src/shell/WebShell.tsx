@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, BackHandler, Linking, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  BackHandler,
+  Linking,
+  NativeEventEmitter,
+  NativeModules,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import WebViewBase from 'react-native-webview';
 import type { WebViewProps } from 'react-native-webview/lib/WebView';
@@ -180,6 +188,23 @@ export function WebShell(): React.JSX.Element {
     if (!push.pushEnabled) return;
     return push.onNotificationTapUrl((url) => loadNative(url));
   }, [loadNative]);
+
+  // --- deep links / share-to-app: open the URL in the WebView ---
+  useEffect(() => {
+    const open = (url: unknown) => {
+      if (typeof url !== 'string') return;
+      const decision = router.route(url, { currentUrl: currentUrlRef.current });
+      if (decision.kind === 'internal' || decision.kind === 'separate-document') {
+        loadNative(decision.url);
+      }
+    };
+    void native.getInitialDeepLink().then(open);
+    const mod = NativeModules.AppcaskNative;
+    if (!mod) return;
+    const emitter = new NativeEventEmitter(mod);
+    const sub = emitter.addListener('appcask:deeplink', (e: { url?: string }) => open(e?.url));
+    return () => sub.remove();
+  }, [router, loadNative]);
 
   // --- biometric app-lock: re-lock when the app comes back from the background ---
   useEffect(() => {

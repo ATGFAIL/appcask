@@ -25,7 +25,7 @@ export function patchBuildGradle(
 
 export function patchStringsXml(
   content: string,
-  opts: { appName: string; deeplinkHost: string },
+  opts: { appName: string; deeplinkHost: string; shareUrl?: string },
 ): string {
   return content
     .replace(
@@ -35,7 +35,32 @@ export function patchStringsXml(
     .replace(
       /(<string name="appcask_deeplink_host">)[^<]*(<\/string>)/,
       `$1${escapeXml(opts.deeplinkHost)}$2`,
+    )
+    .replace(
+      /(<string name="appcask_share_url">)[^<]*(<\/string>)/,
+      `$1${escapeXml(opts.shareUrl ?? '')}$2`,
     );
+}
+
+const SHARE_INTENT_FILTER = `        <intent-filter>
+            <action android:name="android.intent.action.SEND" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:mimeType="text/plain" />
+        </intent-filter>`;
+
+/** Add the ACTION_SEND intent-filter to MainActivity when features.shareTarget is set. */
+export function patchManifestShareTarget(content: string, enabled: boolean): string {
+  const has = content.includes('android.intent.action.SEND');
+  if (enabled && !has) {
+    return content.replace(
+      /(\n\s*<\/activity>)/,
+      `\n\n${SHARE_INTENT_FILTER}$1`,
+    );
+  }
+  if (!enabled && has) {
+    return content.replace(/\s*<intent-filter>(?:(?!<\/intent-filter>)[\s\S])*?android\.intent\.action\.SEND[\s\S]*?<\/intent-filter>/, '');
+  }
+  return content;
 }
 
 export function patchAppJson(content: string, opts: { appName: string }): string {

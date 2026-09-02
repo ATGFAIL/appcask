@@ -4,4 +4,6 @@
          is a host we don't control, so App Link verification simply fails and
          links open the browser — which is the right behaviour until you set it. -->
     <string name="appcask_deeplink_host">example.com</string>
+    <!-- features.shareTarget.url — empty means the app isn't a share target. -->
+    <string name="appcask_share_url"></string>
 </resources>

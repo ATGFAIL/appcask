@@ -12,6 +12,7 @@ import {
   patchBuildGradle,
   patchKotlinPackage,
   patchManifestPermissions,
+  patchManifestShareTarget,
   patchStringsXml,
 } from './androidPatch.js';
 
@@ -161,14 +162,21 @@ async function patchAndroid(
   );
 
   await edit(join(res, 'values', 'strings.xml'), (c) =>
-    patchStringsXml(c, { appName: config.identity.appName, deeplinkHost: deeplinkHost(config) }),
+    patchStringsXml(c, {
+      appName: config.identity.appName,
+      deeplinkHost: deeplinkHost(config),
+      shareUrl: config.features.shareTarget?.url,
+    }),
   );
 
   await edit(join(androidApp, 'src', 'main', 'AndroidManifest.xml'), (c) =>
-    patchManifestPermissions(c, {
-      fileAccess: config.features.fileAccess,
-      downloads: config.features.downloads,
-    }),
+    patchManifestShareTarget(
+      patchManifestPermissions(c, {
+        fileAccess: config.features.fileAccess,
+        downloads: config.features.downloads,
+      }),
+      config.features.shareTarget != null,
+    ),
   );
 
   await edit(join(outDir, 'app.json'), (c) => patchAppJson(c, { appName: config.identity.appName }));

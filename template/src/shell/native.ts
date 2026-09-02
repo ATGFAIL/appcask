@@ -17,6 +17,8 @@ interface AppcaskNativeModule {
   osVersion(): Promise<string>;
   biometricAuthenticate(reason: string | null): Promise<{ authenticated: boolean }>;
   reviewRequest(): Promise<void>;
+  /** A deep link / share the app was opened with, if JS wasn't listening yet. Consumed once. */
+  getInitialDeepLink(): Promise<string | null>;
 }
 
 const RawNative = NativeModules.AppcaskNative as AppcaskNativeModule | undefined;
@@ -73,6 +75,9 @@ export const native = {
     withTimeout('biometricAuthenticate', requireNative().biometricAuthenticate(reason), 120_000),
 
   reviewRequest: () => withTimeout('reviewRequest', requireNative().reviewRequest(), 15_000),
+
+  getInitialDeepLink: (): Promise<string | null> =>
+    RawNative ? RawNative.getInitialDeepLink().catch(() => null) : Promise.resolve(null),
 
   osVersion: (): Promise<string> =>
     RawNative
