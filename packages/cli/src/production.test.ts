@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import {
   checkCsp,
   checkMixedContent,
   checkViewport,
   checkCookies,
   storePolicyNotes,
+  runProductionChecks,
   type Checks,
 } from './production.js';
 import { resolveConfig } from '@appcask/config';
@@ -131,5 +132,44 @@ describe('storePolicyNotes', () => {
     );
     expect(r.has('warn')).toBe(true);
     expect(r.msgOf('warn')).toMatch(/Guideline 4.2|repackaged website/i);
+  });
+});
+
+describe('runProductionChecks live site', () => {
+  const config = resolveConfig({
+    identity: { appName: 'X', packageName: 'com.x.y', version: '1.0.0' },
+    startUrl: 'https://x.example',
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.each([404, 500])('fails on an HTTP %s start URL without running downstream checks', async (status) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html></html>', { status })));
+    const r = recorder();
+
+    await runProductionChecks(r.T, config, '/missing-project', {});
+
+    expect(r.msgOf('fail')).toContain(`responded with HTTP ${status}`);
+    expect(r.levels()).not.toContain('ok');
+    expect(r.levels().filter((level) => level === 'info')).toHaveLength(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs downstream live-site checks for a 2xx start URL', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('<meta name="viewport" content="width=device-width">', { status: 200 }),
+      ),
+    );
+    const r = recorder();
+
+    await runProductionChecks(r.T, config, '/missing-project', {});
+
+    expect(r.has('fail')).toBe(false);
+    expect(r.msgOf('ok')).toBe('no mixed (http://) sub-resources in the landing HTML');
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });
