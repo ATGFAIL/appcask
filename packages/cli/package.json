@@ -1,0 +1,23 @@
+{
+  "name": "appcask",
+  "version": "0.1.0",
+  "description": "Turn any website into a real Android & iOS app from one config file.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "appcask": "./dist/cli.js" },
+  "files": ["dist", "templates"],
+  "keywords": ["webview", "android", "ios", "website-to-app", "react-native", "pwa", "median", "gonative"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@appcask/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5"
+  },
+  "engines": { "node": ">=20" }
+}

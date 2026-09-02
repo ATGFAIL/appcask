@@ -1,0 +1,24 @@
+{
+  "name": "@appcask/web",
+  "version": "0.1.0",
+  "description": "Typed window.appcask client for your website. Talks to the appcask native shell when running inside it, and falls back to Web APIs in a normal browser so one site works everywhere.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "files": ["dist"],
+  "sideEffects": ["./dist/transport.js", "./dist/index.js"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@appcask/bridge": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}

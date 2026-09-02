@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appcask.dev/schema/v1.json",
+  "title": "AppcaskConfig",
+  "description": "Configuration for an appcask app. One file describes the whole shell.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "startUrl"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appName", "packageName", "version"],
+      "properties": {
+        "appName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Human-readable name shown under the launcher icon."
+        },
+        "packageName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$",
+          "description": "Reverse-DNS application id, e.g. com.acme.app. Also used as the iOS bundle id."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Marketing version (x.y.z). The build number is derived unless overridden by the CLI."
+        }
+      }
+    },
+    "startUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://",
+      "description": "The first URL the WebView loads. Must be https."
+    },
+    "internalHosts": {
+      "type": "array",
+      "description": "Hosts that stay inside the WebView. Anything else opens in an external browser tab. Defaults to the host of startUrl.",
+      "items": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+      "uniqueItems": true
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "statusBar": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": { "enum": ["light", "dark"], "default": "dark", "description": "Colour of the status-bar text/icons." },
+            "color": { "$ref": "#/$defs/color", "description": "Status-bar background (Android)." }
+          }
+        },
+        "navigationBarColor": { "$ref": "#/$defs/color", "description": "Android system navigation-bar colour." },
+        "splash": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["background"],
+          "properties": {
+            "background": { "$ref": "#/$defs/color" },
+            "logo": { "type": "string", "description": "Path (relative to the config file) to a centred splash logo, PNG with transparency." }
+          }
+        },
+        "safeArea": {
+          "enum": ["css-vars", "none"],
+          "default": "css-vars",
+          "description": "css-vars injects --appcask-{top,right,bottom,left}-inset so the site can pad around notches."
+        }
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["single", "tabs", "drawer"],
+          "default": "single",
+          "description": "single = one WebView. tabs / drawer add native chrome (roadmap)."
+        },
+        "tabs": {
+          "type": "array",
+          "description": "Used when mode is 'tabs'.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "url"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1, "maxLength": 16 },
+              "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+              "icon": { "type": "string", "description": "Named icon or path to a 24dp glyph." }
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pullToRefresh": { "type": "boolean", "default": false },
+        "offlinePage": { "type": "boolean", "default": true, "description": "Show a built-in offline screen when a load fails with no connection." },
+        "fileAccess": { "type": "boolean", "default": true, "description": "Wire up <input type=file>, camera capture, and the native file picker." },
+        "downloads": { "type": "boolean", "default": true, "description": "Route download responses through the OS download manager." },
+        "shareTarget": { "type": "boolean", "default": false, "description": "Register the app as an Android share target that forwards to a URL (roadmap)." },
+        "appReviewPrompt": { "type": "boolean", "default": false, "description": "Expose window.appcask.review.request() (roadmap)." },
+        "externalBrowserAuth": {
+          "type": "array",
+          "description": "Domains whose pages must open in Custom Tabs / ASWebAuthenticationSession instead of the WebView (Google, Apple, Microsoft, ...). The redirect back to an internalHost is intercepted and the session handed to the WebView.",
+          "items": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+          "uniqueItems": true
+        },
+        "separateDocumentPatterns": {
+          "type": "array",
+          "description": "Path globs that are their own document, not a route inside your SPA. These load via native loadUrl to avoid the location.* navigation bounce. Example: /admin/*, /checkout",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "deepLinks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host"],
+          "properties": {
+            "host": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+            "pathPatterns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["/*"],
+              "description": "Verified App Link / Universal Link paths that open the app."
+            }
+          }
+        },
+        "push": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider"],
+          "description": "Push notifications (roadmap).",
+          "properties": {
+            "provider": { "enum": ["fcm"], "description": "fcm covers Android now; APNs is added with the iOS shell." },
+            "onTapUrlParam": {
+              "type": "string",
+              "default": "url",
+              "description": "Data key on the push payload holding the URL to open on tap."
+            }
+          }
+        }
+      }
+    },
+    "bridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowedOrigins": {
+          "type": "array",
+          "description": "Origins allowed to call window.appcask. Defaults to https://<each internalHost>.",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "color": {
+      "type": "string",
+      "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+      "description": "Hex colour: #rgb, #rrggbb, or #rrggbbaa."
+    }
+  }
+}

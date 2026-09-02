@@ -1,0 +1,17 @@
+{
+  "name": "@appcask/bridge",
+  "version": "0.1.0",
+  "description": "The appcask WebView <-> native bridge wire protocol: message types, codec, and param validators. Shared by the shell and @appcask/web. Zero dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  }
+}

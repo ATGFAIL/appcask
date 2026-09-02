@@ -1,0 +1,28 @@
+{
+  "$schema": "https://appcask.dev/schema/v1.json",
+  "identity": {
+    "appName": "MDN Reader",
+    "packageName": "dev.appcask.example.mdn",
+    "version": "1.0.0"
+  },
+  "startUrl": "https://developer.mozilla.org/en-US/",
+  "internalHosts": ["developer.mozilla.org"],
+  "theme": {
+    "statusBar": { "style": "light", "color": "#1b1b1b" },
+    "navigationBarColor": "#1b1b1b",
+    "splash": { "background": "#1b1b1b", "logo": "assets/splash-logo.png" }
+  },
+  "navigation": { "mode": "single" },
+  "features": {
+    "pullToRefresh": true,
+    "offlinePage": true,
+    "fileAccess": true,
+    "downloads": true,
+    "externalBrowserAuth": ["github.com", "accounts.google.com"],
+    "separateDocumentPatterns": ["/en-US/plus/*"],
+    "deepLinks": {
+      "host": "developer.mozilla.org",
+      "pathPatterns": ["/en-US/docs/*"]
+    }
+  }
+}

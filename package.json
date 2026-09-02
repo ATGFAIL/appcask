@@ -1,0 +1,30 @@
+{
+  "name": "appcask-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn any website into a real Android & iOS app from one config file — the native integration Median puts behind a paywall, MIT-licensed.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.8.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "test": "pnpm -r test",
+    "lint": "eslint packages/*/src",
+    "typecheck": "pnpm -r typecheck",
+    "docs:dev": "pnpm --filter appcask-docs dev",
+    "docs:build": "pnpm --filter appcask-docs build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.19.1",
+    "vitest": "^2.1.9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}

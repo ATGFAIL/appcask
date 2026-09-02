@@ -1,0 +1,41 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+.astro/
+
+# RN / Android / iOS
+template/android/app/build/
+template/android/build/
+template/android/.gradle/
+template/android/local.properties
+template/ios/Pods/
+template/ios/build/
+template/*.keystore
+template/*.jks
+*.apk
+*.aab
+*.ipa
+
+# generated native projects (CLI output)
+.appcask/
+appcask-build/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+*.keystore.properties
+google-services.json
+GoogleService-Info.plist
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.log
+coverage/
