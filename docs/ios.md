@@ -1,6 +1,6 @@
 # iOS
 
-**Status: builds, not device-verified.** The shell, config, router, and bridge
+**Status: compiles green on CI, not device-verified.** The shell, config, router, and bridge
 protocol are cross-platform. The Swift native module is written and
 `appcask ios` wires it into the Xcode project — but it hasn't run on a device
 yet.
@@ -14,9 +14,9 @@ yet.
 - `AppcaskNative.swift` + `AppcaskNative.mm` added to the app target
 - the Objective-C bridging header set
 
-To compile-check it, push the repo and run the **Build iOS** GitHub Action — it
-runs `pod install` + `xcodebuild` on a hosted macOS runner (free for public
-repos) and fails if the Swift doesn't compile.
+The **Build iOS** GitHub Action runs `pod install` + `xcodebuild` on a hosted
+macOS runner (free for public repos) on every push — it currently passes, so the
+Swift compiles. What's left is running it on an actual device.
 
 ## Getting an app you can install
 

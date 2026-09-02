@@ -116,7 +116,7 @@ See [docs/gotchas.md](./docs/gotchas.md) for the full write-up on each.
 - [x] Safe updates: health check, remote kill-switch / `startUrl` pin, auto fall-back to the last working version (`features.updates`)
 - [x] Native navigation — bottom tabs and a slide-out drawer (`navigation.mode`)
 - [x] Demo APK attached to every GitHub Release (`.github/workflows/release.yml`)
-- [~] iOS shell — Swift bridge wired into the Xcode target; compiles on a hosted macOS runner (no Mac needed), not device-verified ([docs/ios.md](./docs/ios.md))
+- [~] iOS shell — **compiles green on CI** (macOS runner: pod install + xcodebuild, no Mac needed); Swift bridge written, not yet device-verified ([docs/ios.md](./docs/ios.md))
 - [~] Push (Android / FCM) — wired via `appcask android` + `google-services.json`; needs a Firebase project to verify ([docs/push.md](./docs/push.md))
 - [x] Biometric app-lock (`features.biometricLock`) + in-app review (`window.appcask.requestReview()`)
 - [x] Deep links open the app at the URL (cold start + running) + Android share-target (`features.shareTarget`)
